@@ -84,7 +84,10 @@ export default function HomeScreen() {
               </Text>
             }
           />
-          <FeaturedCard monument={featured} />
+          <FeaturedCard
+            monument={featured}
+            onPress={() => router.push(`/monument/${featured.id}`)}
+          />
         </View>
 
         <View
@@ -108,7 +111,11 @@ export default function HomeScreen() {
             }}
           >
             {popularMonuments.map((monument) => (
-              <PopularCard key={monument.id} monument={monument} />
+              <PopularCard
+                key={monument.id}
+                monument={monument}
+                onPress={() => router.push(`/monument/${monument.id}`)}
+              />
             ))}
           </ScrollView>
         </View>

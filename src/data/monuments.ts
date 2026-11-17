@@ -53,6 +53,38 @@ export type ExploreFilter = {
   showChevron?: boolean;
 };
 
+/** Content for app/monument/[id]. Mirrors amber-fort-details.html. */
+export type MonumentDetail = {
+  dynasty: string;
+  address: string;
+  reviewCount: string;
+  heroImage: string;
+  galleryImage?: string;
+  photoCount: string;
+  timings: string;
+  entryFee: string;
+  bestTime: string;
+  duration: string;
+  overview: string;
+  highlights: {
+    icon: 'auto-awesome' | 'door-front' | 'theater-comedy';
+    title: string;
+    description: string;
+  }[];
+  audioTour: {
+    title: string;
+    subtitle: string;
+    price: string;
+  };
+  review: {
+    initials: string;
+    name: string;
+    meta: string;
+    rating: number;
+    text: string;
+  };
+};
+
 export const travelerAvatar =
   'https://lh3.googleusercontent.com/aida/ALJJyrDkPHlYU9jqYeYUNcIPBUnDIccYxvTqnc9uEtYl5i0k3cP9htK9cqhrialvDNtPa_AmFaLeiTCIzd3WhoWZEE7AdcfJJHhyRwaPSaDQ8twI_P4FVzOTAwaAKXj8JGeJlCT4kGrtF-qmYYXLkk3OlbX5MNHJWVXvYbnUZk8RlGCpJ8krewiRHQyRTitToqJ7RqnmtprJfqCj4c1DDBIJU0VKFrMLJ0YhFrimwoJ1WActv0MRMXbx';
 
@@ -213,3 +245,62 @@ export const popularMonuments: Monument[] = [
 ];
 
 export const allMonuments: Monument[] = [...featuredMonuments, ...popularMonuments];
+
+export const monumentDetails: Record<string, MonumentDetail> = {
+  'amber-fort': {
+    dynasty: 'Kachwaha Dynasty • 1592 CE',
+    address: 'Devisinghpura, Amer, Jaipur, Rajasthan 302001',
+    reviewCount: '18,420 reviews',
+    heroImage:
+      'https://lh3.googleusercontent.com/aida/ALJJyrAsF40ZXN-v1Vulvw4aG7ozy4xUh0rqhqOFMW886NrUB8-GWJf9jZwEkv-Ajh0PFbQ7zXhxjaw-voWbJKcWJhvVjUH2pm-0EJyjpfM4c-BjVlBoHgYLLJ4bOMmDh1o26k26rnK3ivgSB-o-HPB_KbnJmvzvkGLTViG3L4XzwDRBau4qjDos9RrEdaX7Hb2dEKKcUCx4oTJfCvDBML9UVR_WGyPIUmgC1M2VwfiYFzF7iDrtg1HjyZDRlg',
+    galleryImage:
+      'https://lh3.googleusercontent.com/aida/ALJJyrDnE4ordyyeLqErXXZ_xK3rDBbLiBHxeX0TX4mX4b8ZJEDyySZc6hUdaUDZcRUqTlKsWBP8YY-jrP8mL-vhkeVRwXuOoqlfPMVbFmf-bVwRqzS3VXT_Tyh4XpqCAosFE5A4LBJaD0f-ULvD5yP0mczYCD8o0lzJ6H9VU55Al5hqsnvcH3KABmtFL3Axw2_gwOecH-NxL46UwR9WDhgFViDx7_WH11NA93Qp8RMtxpejtubJuVc6j7OiO1vkmx4jpEX8',
+    photoCount: '1 / 18 Photos',
+    timings: '8 AM - 7 PM',
+    entryFee: '₹100 / ₹550',
+    bestTime: 'Oct - Mar',
+    duration: '2.5 - 3 Hrs',
+    overview:
+      'Perched high on the rugged Cheel ka Teela (Hill of Eagles), Amber Fort is celebrated for its artistic Hindu-style elements. Built with red sandstone and white marble, the opulent palace complex is laid out over four distinct courtyards overlooking the tranquil waters of Maota Lake.',
+    highlights: [
+      {
+        icon: 'auto-awesome',
+        title: 'Sheesh Mahal (Hall of Mirrors)',
+        description:
+          'Convex Belgian mirror tiles that illuminate the whole royal chamber with a single candlelight.',
+      },
+      {
+        icon: 'door-front',
+        title: 'Ganesh Pol Gateway',
+        description:
+          'Three-level ceremonial gate adorned with traditional Rajasthani frescoes and jali lattice screens.',
+      },
+      {
+        icon: 'theater-comedy',
+        title: 'Evening Sound & Light Show',
+        description:
+          'Narrated in Hindi & English highlighting 600 years of Kachwaha valor and Rajput royal pageantry.',
+      },
+    ],
+    audioTour: {
+      title: 'Self-Guided Audio Tour',
+      subtitle: 'Available in 8 languages • 45 mins',
+      price: 'Listen ₹99',
+    },
+    review: {
+      initials: 'PK',
+      name: 'Pooja Kulkarni',
+      meta: 'Visited last weekend',
+      rating: 5,
+      text: '"The mirror hall was breathtaking in person. We walked up the ramparts early around 8:30 AM to beat the crowd and the morning light over Maota Lake was truly cinematic."',
+    },
+  },
+};
+
+export function getMonument(id: string): Monument | undefined {
+  return allMonuments.find((monument) => monument.id === id);
+}
+
+export function getMonumentDetail(id: string): MonumentDetail | undefined {
+  return monumentDetails[id];
+}

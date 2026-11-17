@@ -173,7 +173,11 @@ export default function ExploreScreen() {
         </View>
 
         {exploreMonuments.map((monument) => (
-          <ExploreCard key={monument.id} monument={monument} />
+          <ExploreCard
+            key={monument.id}
+            monument={monument}
+            onPress={() => router.push(`/monument/${monument.id}`)}
+          />
         ))}
       </ScrollView>
     </View>
