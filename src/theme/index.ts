@@ -116,6 +116,31 @@ const typographyBase = {
     lineHeight: 16,
     fontWeight: '600',
   },
+  bodySmMedium: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '500',
+  },
+  labelSmMedium: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 11,
+    lineHeight: 14,
+    letterSpacing: 0.5,
+    fontWeight: '500',
+  },
+  headlineSmBold: {
+    fontFamily: 'PlayfairDisplay_700Bold',
+    fontSize: 18,
+    lineHeight: 24,
+    fontWeight: '700',
+  },
+  labelMdBold: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '700',
+  },
   labelSm: {
     fontFamily: 'Inter_600SemiBold',
     fontSize: 11,
@@ -218,6 +243,7 @@ export type ThemeColors = {
   overlay: string;
   // Tokens for content layered over photography.
   heroScrim: string;
+  blackScrim: string;
   onImage: string;
   onImageMuted: string;
   onImageFaint: string;
@@ -256,6 +282,7 @@ const lightBase: ThemeColors = {
   success: '#2E7D32',
   overlay: 'rgba(31, 42, 92, 0.32)',
   heroScrim: '31, 42, 92',
+  blackScrim: '0, 0, 0',
   onImage: '#FFFFFF',
   onImageMuted: 'rgba(255, 255, 255, 0.8)',
   onImageFaint: 'rgba(255, 255, 255, 0.6)',
@@ -295,6 +322,7 @@ const darkBase: ThemeColors = {
   success: '#81C784',
   overlay: 'rgba(0, 0, 0, 0.5)',
   heroScrim: '31, 42, 92',
+  blackScrim: '0, 0, 0',
   onImage: '#FFFFFF',
   onImageMuted: 'rgba(255, 255, 255, 0.8)',
   onImageFaint: 'rgba(255, 255, 255, 0.6)',
