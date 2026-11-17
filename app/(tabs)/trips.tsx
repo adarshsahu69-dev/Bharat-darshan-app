@@ -190,9 +190,11 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
     timeline: {
       marginTop: theme.spacing.md,
       gap: theme.spacing.lg,
+      alignSelf: 'stretch',
     },
     timelineEntry: {
-      flexDirection: 'row',
+      width: '100%',
+      alignSelf: 'stretch',
     },
   });
 }

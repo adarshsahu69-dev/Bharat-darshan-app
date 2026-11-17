@@ -43,11 +43,7 @@ export function TripStopCard({ stop, index, tone, onPress }: Props) {
       >
         <View style={styles.metaRow}>
           <View style={styles.timeRow}>
-            <MaterialIcons
-              name="schedule"
-              size={12}
-              color={dotColor}
-            />
+            <MaterialIcons name="schedule" size={12} color={dotColor} />
             <Text
               style={[
                 theme.typography.labelMd,
@@ -58,11 +54,7 @@ export function TripStopCard({ stop, index, tone, onPress }: Props) {
             </Text>
           </View>
           <View style={styles.ratingRow}>
-            <MaterialIcons
-              name="star"
-              size={12}
-              color={theme.colors.gold}
-            />
+            <MaterialIcons name="star" size={12} color={theme.colors.gold} />
             <Text
               style={[
                 theme.typography.labelMd,
@@ -82,52 +74,57 @@ export function TripStopCard({ stop, index, tone, onPress }: Props) {
           </View>
         </View>
 
-        <View style={styles.contentRow}>
+        <Text
+          style={[
+            theme.typography.titleMd,
+            { color: theme.colors.secondary, marginTop: theme.spacing.xs },
+          ]}
+        >
+          {stop.name}
+        </Text>
+
+        <Text
+          style={[
+            theme.typography.bodySm,
+            { color: theme.colors.onSurfaceVariant, marginTop: 2 },
+          ]}
+        >
+          {stop.description}
+        </Text>
+
+        <View style={styles.footer}>
           <Image
             source={{ uri: stop.image }}
             style={styles.thumb}
             resizeMode="cover"
             accessibilityIgnoresInvertColors
           />
-          <View style={{ flex: 1 }}>
-            <Text
-              numberOfLines={2}
-              style={[
-                theme.typography.titleMd,
-                { color: theme.colors.secondary },
-              ]}
-            >
-              {stop.name}
-            </Text>
-            <Text
-              numberOfLines={2}
-              style={[
-                theme.typography.bodySm,
-                { color: theme.colors.onSurfaceVariant, marginTop: 2 },
-              ]}
-            >
-              {stop.description}
-            </Text>
-            <View style={styles.footer}>
-              <View style={styles.ticketRow}>
-                <MaterialIcons
-                  name="confirmation-number"
-                  size={12}
-                  color={dotColor}
-                />
-                <Text
-                  style={[
-                    theme.typography.labelMd,
-                    { color: theme.colors.onSurface },
-                  ]}
-                >
-                  {stop.ticketLabel}
-                </Text>
-              </View>
+          <View style={styles.ticketCol}>
+            <View style={styles.ticketRow}>
+              <MaterialIcons
+                name="confirmation-number"
+                size={14}
+                color={dotColor}
+              />
               <Text
                 style={[
                   theme.typography.labelMd,
-                  { color: theme.colors.primary },
+                  { color: theme.colors.onSurface },
+                ]}
+              >
+                {stop.ticketLabel}
+              </Text>
+            </View>
+            <View style={styles.durationRow}>
+              <MaterialIcons
+                name="schedule"
+                size={12}
+                color={theme.colors.onSurfaceVariant}
+              />
+              <Text
+                style={[
+                  theme.typography.labelMd,
+                  { color: theme.colors.onSurfaceVariant },
                 ]}
               >
                 {stop.duration}
@@ -144,16 +141,19 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     row: {
       flexDirection: 'row',
+      width: '100%',
+      alignSelf: 'stretch',
     },
     rail: {
-      width: 24,
+      width: 40,
+      alignSelf: 'stretch',
       alignItems: 'center',
       paddingTop: 4,
     },
     dot: {
-      width: 22,
-      height: 22,
-      borderRadius: 11,
+      width: 24,
+      height: 24,
+      borderRadius: 12,
       borderWidth: 3,
       alignItems: 'center',
       justifyContent: 'center',
@@ -161,6 +161,8 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
     },
     card: {
       flex: 1,
+      minWidth: 0,
+      alignSelf: 'stretch',
       marginLeft: theme.spacing.sm,
       padding: theme.spacing.md,
       borderRadius: theme.radii.default,
@@ -175,36 +177,44 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
       justifyContent: 'space-between',
     },
     timeRow: {
+      flexShrink: 1,
       flexDirection: 'row',
       alignItems: 'center',
       gap: theme.spacing.xs,
     },
     ratingRow: {
+      flexShrink: 0,
       flexDirection: 'row',
       alignItems: 'center',
       gap: 2,
     },
-    contentRow: {
+    footer: {
       flexDirection: 'row',
+      alignItems: 'center',
       gap: theme.spacing.md,
       marginTop: theme.spacing.sm,
+      paddingTop: theme.spacing.sm,
+      borderTopWidth: 1,
+      borderTopColor: `${theme.colors.outlineVariant}4D`,
     },
     thumb: {
       width: 72,
       height: 72,
+      flexShrink: 0,
       borderRadius: theme.radii.sm,
       backgroundColor: theme.colors.surfaceContainer,
     },
-    footer: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      marginTop: theme.spacing.sm,
-      paddingTop: theme.spacing.xs,
-      borderTopWidth: 1,
-      borderTopColor: `${theme.colors.outlineVariant}4D`,
+    ticketCol: {
+      flex: 1,
+      minWidth: 0,
+      gap: theme.spacing.xs,
     },
     ticketRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.spacing.xs,
+    },
+    durationRow: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: theme.spacing.xs,
