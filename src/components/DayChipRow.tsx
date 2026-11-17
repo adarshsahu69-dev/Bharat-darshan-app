@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
 
-import { TripDay } from '@/data/trips';
+import { formatDayDate, TripDay } from '@/data/trips';
 import { useTheme } from '@/theme/ThemeProvider';
 
 type Props = {
@@ -20,14 +20,14 @@ export function DayChipRow({ days, activeId, onSelect }: Props) {
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={styles.row}
     >
-      {days.map((day) => {
+      {days.map((day, index) => {
         const active = day.id === activeId;
         return (
           <Pressable
             key={day.id}
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
-            accessibilityLabel={`${day.shortLabel}, ${day.title}`}
+            accessibilityLabel={`Day ${index + 1}, ${day.title}`}
             onPress={() => onSelect(day.id)}
             style={({ pressed }) => [
               styles.chip,
@@ -41,7 +41,7 @@ export function DayChipRow({ days, activeId, onSelect }: Props) {
                 { color: active ? theme.colors.onPrimary : theme.colors.onSurface },
               ]}
             >
-              {day.shortLabel}
+              Day {index + 1}
             </Text>
             <Text
               style={[
@@ -55,6 +55,19 @@ export function DayChipRow({ days, activeId, onSelect }: Props) {
               ]}
             >
               {day.title}
+            </Text>
+            <Text
+              style={[
+                theme.typography.labelSm,
+                {
+                  color: active
+                    ? `${theme.colors.onPrimary}CC`
+                    : theme.colors.outline,
+                  marginTop: 1,
+                },
+              ]}
+            >
+              {formatDayDate(day.date)}
             </Text>
           </Pressable>
         );
@@ -71,6 +84,7 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
       paddingRight: theme.spacing.page,
     },
     chip: {
+      minWidth: 92,
       paddingHorizontal: theme.spacing.lg,
       paddingVertical: theme.spacing.sm,
       borderRadius: theme.radii.chip,

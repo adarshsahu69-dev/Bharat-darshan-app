@@ -1,13 +1,8 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useMemo } from 'react';
-import {
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { SafeImage } from '@/components/SafeImage';
 import { TripTraveler } from '@/data/trips';
 import { useTheme } from '@/theme/ThemeProvider';
 
@@ -103,11 +98,12 @@ export function TripHeaderCard({
                   index === 2 && { zIndex: -1 },
                 ]}
               >
-                <Image
-                  source={{ uri: traveler.image }}
+                <SafeImage
+                  uri={traveler.image}
                   style={styles.avatarImage}
-                  resizeMode="cover"
-                  accessibilityIgnoresInvertColors
+                  accessibilityLabel={traveler.name}
+                  iconName="person"
+                  iconSize={14}
                 />
               </View>
             ))}

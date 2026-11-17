@@ -1,38 +1,67 @@
 /**
- * Mock data for the Trips screen.
- * Image URLs are the placeholders exported from the Stitch trip design.
- * Replace with Supabase rows when the data layer is added.
+ * Trip data model for the Trips screen.
+ *
+ * The trip itself is persisted in the Zustand store (src/store/tripStore.ts).
+ * This module owns the TypeScript shapes, the formatting helpers and the seed
+ * itinerary that the store is initialised with.
+ *
+ * Stops are snapshots: they carry everything a TripStopCard needs (name, image,
+ * rating, ticket price, coordinates) plus the `monumentId` they came from so a
+ * stop can be linked back to its details screen.
  */
+
+import { allMonuments, getMonument, Monument } from '@/data/monuments';
+
+export type BudgetCategoryId = 'tickets' | 'travel' | 'guides' | 'food';
+
+export type BudgetColor = 'primary' | 'gold' | 'emerald' | 'secondary';
+
+export type TripBudgetCategory = {
+  id: BudgetCategoryId;
+  label: string;
+  /** Allocated amount in rupees. */
+  amount: number;
+  /** Portion already pre-paid, in rupees (0..amount). */
+  prepaid: number;
+  color: BudgetColor;
+};
 
 export type TripStop = {
   id: string;
+  /** Monument this stop was created from, when it came from the catalogue. */
+  monumentId?: string;
+  name: string;
   time: string;
   duration: string;
-  name: string;
   rating: number;
   reviewCount: string;
   description: string;
   image: string;
+  ticketPrice: number;
   ticketLabel: string;
+  lat: number;
+  lng: number;
 };
 
 export type TripDay = {
   id: string;
-  shortLabel: string;
-  dateLabel: string;
   title: string;
-  meta: string;
+  /** ISO date, `YYYY-MM-DD`. */
+  date: string;
   stops: TripStop[];
 };
 
-export type TripBudgetSegment = {
-  id: string;
-  label: string;
-  amount: string;
-  /** Flex weight for the segmented bar. */
-  weight: number;
-  /** Colour token key resolved from the theme. */
-  color: 'primary' | 'gold' | 'emerald' | 'secondary';
+export type Trip = {
+  title: string;
+  destination: string;
+  /** ISO dates. */
+  startDate: string;
+  endDate: string;
+  travelerCount: number;
+  /** Headline budget in rupees. */
+  totalBudget: number;
+  categories: TripBudgetCategory[];
+  days: TripDay[];
 };
 
 export type TripTraveler = {
@@ -41,12 +70,264 @@ export type TripTraveler = {
   image: string;
 };
 
+/** Small, reliable avatar photos for the traveler row. */
 export const tripTravelerImages = [
-  'https://lh3.googleusercontent.com/aida/ALJJyrDkPHlYU9jqYeYUNcIPBUnDIccYxvTqnc9uEtYl5i0k3cP9htK9cqhrialvDNtPa_AmFaLeiTCIzd3WhoWZEE7AdcfJJHhyRwaPSaDQ8twI_P4FVzOTAwaAKXj8JGeJlCT4kGrtF-qmYYXLkk3OlbX5MNHJWVXvYbnUZk8RlGCpJ8krewiRHQyRTitToqJ7RqnmtprJfqCj4c1DDBIJU0VKFrMLJ0YhFrimwoJ1WActv0MRMXbx',
-  'https://lh3.googleusercontent.com/aida/ALJJyrAsF40ZXN-v1Vulvw4aG7ozy4xUh0rqhqOFMW886NrUB8-GWJf9jZwEkv-Ajh0PFbQ7zXhxjaw-voWbJKcWJhvVjUH2pm-0EJyjpfM4c-BjVlBoHgYLLJ4bOMmDh1o26k26rnK3ivgSB-o-HPB_KbnJmvzvkGLTViG3L4XzwDRBau4qjDos9RrEdaX7Hb2dEKKcUCx4oTJfCvDBML9UVR_WGyPIUmgC1M2VwfiYFzF7iDrtg1HjyZDRlg',
-  'https://lh3.googleusercontent.com/aida/ALJJyrAjUhI48ZDKp28fejkFV1XFAmrX-OEA1s_0H4-uaQoDkZ6leeTxBLp1ktAKMCvz9-6LvDrSEqQZn7ufsCDJT7XyocWrOcyPSc4MKzPFeVN-4WSieZRET9oj0rRmDpYgd4xy1ZeWY739kTXJcM69UiGhtfz-9Wji0K71McAMegwX0p3S8aWvtuX06ZCvnEpalSJWtp16cpjXbA77FhZkez-NqWtJs-XzNLCe4Ljcsfvc6jjfMA',
+  'https://i.pravatar.cc/100?img=12',
+  'https://i.pravatar.cc/100?img=5',
+  'https://i.pravatar.cc/100?img=9',
+  'https://i.pravatar.cc/100?img=32',
 ];
 
+/* ------------------------------------------------------------------ helpers */
+
+const RUPEE = '₹';
+
+/** Indian digit grouping, e.g. 1400000 -> "14,00,000". */
+export function groupIndianDigits(value: number): string {
+  const digits = String(Math.max(0, Math.round(value)));
+  if (digits.length <= 3) {
+    return digits;
+  }
+  const lastThree = digits.slice(-3);
+  let rest = digits.slice(0, -3);
+  const groups: string[] = [];
+  while (rest.length > 2) {
+    groups.unshift(rest.slice(-2));
+    rest = rest.slice(0, -2);
+  }
+  if (rest.length > 0) {
+    groups.unshift(rest);
+  }
+  return `${groups.join(',')},${lastThree}`;
+}
+
+/** Format rupees with the ₹ symbol and Indian grouping. */
+export function formatINR(value: number): string {
+  return `${RUPEE}${groupIndianDigits(value)}`;
+}
+
+/** Compact label for tight spaces, e.g. 2100 -> "₹2.1k". */
+export function formatINRCompact(value: number): string {
+  if (value >= 1000) {
+    const k = value / 1000;
+    const label = Number.isInteger(k) ? String(k) : k.toFixed(1);
+    return `${RUPEE}${label}k`;
+  }
+  return `${RUPEE}${Math.round(value)}`;
+}
+
+/** Great-circle distance in kilometres between two coordinates. */
+export function haversineKm(
+  a: { lat: number; lng: number },
+  b: { lat: number; lng: number },
+): number {
+  const R = 6371;
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = toRad(b.lat - a.lat);
+  const dLng = toRad(b.lng - a.lng);
+  const lat1 = toRad(a.lat);
+  const lat2 = toRad(b.lat);
+  const h =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLng / 2) ** 2;
+  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+/** Travel distance for a day: sum of the legs between consecutive stops. */
+export function dayTravelKm(day: TripDay): number {
+  let total = 0;
+  for (let i = 1; i < day.stops.length; i += 1) {
+    total += haversineKm(day.stops[i - 1], day.stops[i]);
+  }
+  return Math.round(total);
+}
+
+export function dayMetaLabel(day: TripDay): string {
+  const count = day.stops.length;
+  const km = dayTravelKm(day);
+  const places = `${count} ${count === 1 ? 'place' : 'places'}`;
+  return `${places} · ${km} km total travel`;
+}
+
+export function tripSitesCount(trip: Trip): number {
+  return trip.days.reduce((sum, day) => sum + day.stops.length, 0);
+}
+
+export function tripUnescoCount(trip: Trip): number {
+  let count = 0;
+  for (const day of trip.days) {
+    for (const stop of day.stops) {
+      const monument = stop.monumentId ? getMonument(stop.monumentId) : undefined;
+      if (monument?.isUnesco) {
+        count += 1;
+      }
+    }
+  }
+  return count;
+}
+
+export function tripPrepaid(trip: Trip): number {
+  return trip.categories.reduce((sum, category) => sum + category.prepaid, 0);
+}
+
+export function tripPerTraveler(trip: Trip): number {
+  const travelers = Math.max(1, trip.travelerCount);
+  return Math.round(trip.totalBudget / travelers);
+}
+
+/** "3 Days · Oct 24 - 26, 2025" style label from ISO dates. */
+export function formatTripDates(startDate: string, endDate: string): string {
+  const start = new Date(`${startDate}T00:00:00`);
+  const end = new Date(`${endDate}T00:00:00`);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return 'Dates to be decided';
+  }
+  const dayCount = Math.max(
+    1,
+    Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1,
+  );
+  const month = (d: Date) =>
+    d.toLocaleDateString('en-US', { month: 'short' });
+  const sameMonth = start.getMonth() === end.getMonth();
+  const startLabel = `${month(start)} ${start.getDate()}`;
+  const endLabel = sameMonth
+    ? `${end.getDate()}`
+    : `${month(end)} ${end.getDate()}`;
+  return `${dayCount} ${dayCount === 1 ? 'Day' : 'Days'} · ${startLabel} - ${endLabel}, ${end.getFullYear()}`;
+}
+
+/** Human-friendly label for an ISO date on a day chip. */
+export function formatDayDate(iso: string): string {
+  const date = new Date(`${iso}T00:00:00`);
+  if (Number.isNaN(date.getTime())) {
+    return iso;
+  }
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+/* --------------------------------------------------------------- stop build */
+
+const STOP_TIMES = [
+  '08:30 AM',
+  '11:00 AM',
+  '02:00 PM',
+  '04:30 PM',
+  '06:30 PM',
+  '08:00 PM',
+];
+
+/** Build a fully-populated stop from a catalogue monument. */
+export function stopFromMonument(monument: Monument, index = 0): TripStop {
+  return {
+    id: `${monument.id}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    monumentId: monument.id,
+    name: monument.name,
+    time: STOP_TIMES[index % STOP_TIMES.length],
+    duration: '2 hrs',
+    rating: monument.rating,
+    reviewCount: monument.reviewCount ?? '',
+    description: monument.description ?? '',
+    image: monument.image,
+    ticketPrice: monument.ticketPrice,
+    ticketLabel:
+      monument.ticketLabel ??
+      (monument.ticketPrice > 0 ? `${RUPEE}${monument.ticketPrice}` : 'Free'),
+    lat: monument.lat,
+    lng: monument.lng,
+  };
+}
+
+/* --------------------------------------------------------------- seed trip */
+
+type DayBlueprint = {
+  id: string;
+  title: string;
+  date: string;
+  monumentIds: string[];
+};
+
+const DAY_BLUEPRINTS: DayBlueprint[] = [
+  {
+    id: 'day-1',
+    title: 'Amber & Forts',
+    date: '2025-10-24',
+    monumentIds: ['amber-fort', 'jaigarh-fort', 'nahargarh-fort', 'jal-mahal'],
+  },
+  {
+    id: 'day-2',
+    title: 'Old Pink City',
+    date: '2025-10-25',
+    monumentIds: ['hawa-mahal', 'city-palace-jaipur', 'albert-hall'],
+  },
+  {
+    id: 'day-3',
+    title: 'Sunset & Farewell',
+    date: '2025-10-26',
+    monumentIds: ['nahargarh-fort', 'jal-mahal'],
+  },
+];
+
+function seedStops(day: DayBlueprint): TripStop[] {
+  return day.monumentIds
+    .map((monumentId, index) => {
+      const monument = getMonument(monumentId);
+      if (!monument) {
+        return null;
+      }
+      const stop = stopFromMonument(monument, index);
+      return { ...stop, id: `${day.id}-${monumentId}` };
+    })
+    .filter((stop): stop is TripStop => stop !== null);
+}
+
+/** Build the default trip the store hydrates with. */
+export function createSeedTrip(): Trip {
+  const days: TripDay[] = DAY_BLUEPRINTS.map((blueprint) => ({
+    id: blueprint.id,
+    title: blueprint.title,
+    date: blueprint.date,
+    stops: seedStops(blueprint),
+  }));
+
+  const ticketTotal = days.reduce(
+    (sum, day) =>
+      sum + day.stops.reduce((daySum, stop) => daySum + stop.ticketPrice, 0),
+    0,
+  );
+
+  const categories: TripBudgetCategory[] = [
+    { id: 'tickets', label: 'Tickets', amount: ticketTotal, prepaid: 0, color: 'primary' },
+    { id: 'travel', label: 'Travel', amount: 4200, prepaid: 4000, color: 'gold' },
+    { id: 'guides', label: 'Guides', amount: 3500, prepaid: 2000, color: 'emerald' },
+    { id: 'food', label: 'Food', amount: 5000, prepaid: 0, color: 'secondary' },
+  ];
+
+  const totalBudget = categories.reduce(
+    (sum, category) => sum + category.amount,
+    0,
+  );
+
+  return {
+    title: 'Royal Heritage of Rajasthan',
+    destination: 'Jaipur & Amer',
+    startDate: '2025-10-24',
+    endDate: '2025-10-26',
+    travelerCount: 4,
+    totalBudget,
+    categories,
+    days,
+  };
+}
+
+/** All catalogue monuments, handy for the place picker. */
+export const tripPickerMonuments: Monument[] = allMonuments;
+
+/* ------------------------------------------------- legacy compatibility ---- */
+
+/** @deprecated Use the store instead. Kept so older imports still resolve. */
 export const tripHeader = {
   chip: 'Rajasthan Circuit',
   title: 'Royal Heritage of Rajasthan',
@@ -55,185 +336,3 @@ export const tripHeader = {
   confirmed: 'Confirmed Trip',
   travelerCount: 4,
 };
-
-export const tripStats = {
-  sites: {
-    label: 'Sites to Visit',
-    value: '8',
-    detail: '3 UNESCO Sites',
-  },
-  budget: {
-    label: 'Est. Budget',
-    value: '₹14,500',
-    detail: '₹3,625 / traveler',
-  },
-};
-
-export const tripBudget = {
-  total: '₹14,500',
-  prepaid: '₹6,000',
-  prepaidNote: 'of ₹14,500 pre-paid',
-  segments: [
-    { id: 'tickets', label: 'Tickets', amount: '₹2.1k', weight: 2.1, color: 'primary' },
-    { id: 'travel', label: 'Travel', amount: '₹4.2k', weight: 4.2, color: 'gold' },
-    { id: 'guides', label: 'Guides', amount: '₹3.5k', weight: 3.5, color: 'emerald' },
-    { id: 'food', label: 'Food', amount: '₹5k', weight: 5, color: 'secondary' },
-  ] satisfies TripBudgetSegment[],
-};
-
-const amberFortImage =
-  'https://lh3.googleusercontent.com/aida/ALJJyrAsF40ZXN-v1Vulvw4aG7ozy4xUh0rqhqOFMW886NrUB8-GWJf9jZwEkv-Ajh0PFbQ7zXhxjaw-voWbJKcWJhvVjUH2pm-0EJyjpfM4c-BjVlBoHgYLLJ4bOMmDh1o26k26rnK3ivgSB-o-HPB_KbnJmvzvkGLTViG3L4XzwDRBau4qjDos9RrEdaX7Hb2dEKKcUCx4oTJfCvDBML9UVR_WGyPIUmgC1M2VwfiYFzF7iDrtg1HjyZDRlg';
-const hawaMahalImage =
-  'https://lh3.googleusercontent.com/aida/ALJJyrDxvgaELk8cAG6h3gEOg1Py7XM4-zXzJgCcnoYXcvP8lCbqltYbdugh3kT1S3SVA48h6J7Ojqs3Umg95lmzYybNJVG5nUt9pAoQD27UN7i2JB7XmpuLLX9N79LUhardPJ7fWeAu5O_j_qRvNlKjEJR-xZbNWkwQIb3q_pBs1uu-nBOHpe6wc3qJUYx-L_OmZGenrJ5hIV74NN4coiRSIL0XL0126-YktNBhoWpoMF8BeYML';
-const nahargarhImage =
-  'https://lh3.googleusercontent.com/aida/ALJJyrAuCPVc8krc4DaJBLMqoN1r8jq9cwFN8j_LcPBn0T_AXCbfizFzQ_bp8ApiwgjN5qPipDCs8DoTY-0OpCYyQRofKgfoNP7fLJJ1s-6rd6nWLh0XfHH0OkRxIG-crr-yzQwqYrwfu-srV2I7Kfg5fqy4r-OH1pc-FjlDIUV_o7TlfLL_Jq8ck6bqEqx9q4zjNTvIQRQIbL08icQ7lBVSgsbd5Swssq0nDqj3OOyKWSCo48pxTjmRVWmuKg';
-
-export const tripDays: TripDay[] = [
-  {
-    id: 'day-1',
-    shortLabel: 'Day 1',
-    dateLabel: 'Oct 24',
-    title: 'Amber & Forts',
-    meta: '4 places · 18 km total travel',
-    stops: [
-      {
-        id: 'amber-fort',
-        time: '08:30 AM – 12:30 PM',
-        duration: '4 hrs',
-        name: 'Amber Fort & Palace',
-        rating: 4.8,
-        reviewCount: '34K',
-        description:
-          'Explore Sheesh Mahal, royal courtyards, & Maota Lake gardens before the midday rush.',
-        image: amberFortImage,
-        ticketLabel: '₹100',
-      },
-      {
-        id: 'nahargarh-fort',
-        time: '02:00 PM – 04:00 PM',
-        duration: '2 hrs',
-        name: 'Nahargarh Fort',
-        rating: 4.6,
-        reviewCount: '21K',
-        description:
-          'Panoramic sunset views over the Pink City from the Aravalli ridge ramparts.',
-        image: nahargarhImage,
-        ticketLabel: '₹50',
-      },
-      {
-        id: 'jal-mahal',
-        time: '04:30 PM – 05:30 PM',
-        duration: '1 hr',
-        name: 'Jal Mahal',
-        rating: 4.5,
-        reviewCount: '18K',
-        description:
-          'Photo stop at the water palace floating in the middle of Man Sagar Lake.',
-        image: hawaMahalImage,
-        ticketLabel: 'Free',
-      },
-      {
-        id: 'amber-anokhi',
-        time: '06:00 PM – 07:30 PM',
-        duration: '1.5 hrs',
-        name: 'Anokhi Museum',
-        rating: 4.7,
-        reviewCount: '2K',
-        description:
-          'Block-printing heritage in a restored haveli near the Amber Fort ramparts.',
-        image: amberFortImage,
-        ticketLabel: '₹80',
-      },
-    ],
-  },
-  {
-    id: 'day-2',
-    shortLabel: 'Day 2',
-    dateLabel: 'Oct 25',
-    title: 'Old Pink City',
-    meta: '3 places · 6 km total travel',
-    stops: [
-      {
-        id: 'hawa-mahal',
-        time: '09:00 AM – 10:30 AM',
-        duration: '1.5 hrs',
-        name: 'Hawa Mahal',
-        rating: 4.7,
-        reviewCount: '52K',
-        description:
-          'The Palace of Winds with 953 jharokhas overlooking the Pink City bazaar.',
-        image: hawaMahalImage,
-        ticketLabel: '₹50',
-      },
-      {
-        id: 'city-palace',
-        time: '11:00 AM – 01:00 PM',
-        duration: '2 hrs',
-        name: 'City Palace',
-        rating: 4.6,
-        reviewCount: '29K',
-        description:
-          'Chandra Mahal and Mubarak Mahal courtyards with royal textile and armour collections.',
-        image: amberFortImage,
-        ticketLabel: '₹200',
-      },
-      {
-        id: 'jantar-mantar',
-        time: '02:30 PM – 04:00 PM',
-        duration: '1.5 hrs',
-        name: 'Jantar Mantar',
-        rating: 4.5,
-        reviewCount: '12K',
-        description:
-          'UNESCO-listed astronomical observatory built by Maharaja Sawai Jai Singh II.',
-        image: hawaMahalImage,
-        ticketLabel: '₹50',
-      },
-    ],
-  },
-  {
-    id: 'day-3',
-    shortLabel: 'Day 3',
-    dateLabel: 'Oct 26',
-    title: 'Gardens & Farewell',
-    meta: '3 places · 12 km total travel',
-    stops: [
-      {
-        id: 'sisodia-rani',
-        time: '08:30 AM – 10:00 AM',
-        duration: '1.5 hrs',
-        name: 'Sisodia Rani Garden',
-        rating: 4.4,
-        reviewCount: '9K',
-        description:
-          'Terraced Mughal-style gardens with painted pavilions and water channels.',
-        image: nahargarhImage,
-        ticketLabel: '₹20',
-      },
-      {
-        id: 'galtaji',
-        time: '10:30 AM – 12:00 PM',
-        duration: '1.5 hrs',
-        name: 'Galtaji Temple',
-        rating: 4.5,
-        reviewCount: '15K',
-        description:
-          'Hilltop pilgrimage complex with seven sacred kunds and resident monkeys.',
-        image: nahargarhImage,
-        ticketLabel: 'Free',
-      },
-      {
-        id: 'albert-hall',
-        time: '03:00 PM – 05:00 PM',
-        duration: '2 hrs',
-        name: 'Albert Hall Museum',
-        rating: 4.6,
-        reviewCount: '22K',
-        description:
-          'Indo-Saracenic state museum with Egyptian mummies and Rajasthani miniature art.',
-        image: amberFortImage,
-        ticketLabel: '₹150',
-      },
-    ],
-  },
-];

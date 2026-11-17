@@ -1,5 +1,8 @@
+import { MaterialIcons } from '@expo/vector-icons';
 import { useMemo, useState } from 'react';
 import {
+  Alert,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -7,35 +10,105 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { BudgetEditSheet } from '@/components/BudgetEditSheet';
 import { DayChipRow } from '@/components/DayChipRow';
+import { PlacePickerSheet } from '@/components/PlacePickerSheet';
 import { TripBudgetCard } from '@/components/TripBudgetCard';
+import { TripEditSheet } from '@/components/TripEditSheet';
 import { TripHeaderCard } from '@/components/TripHeaderCard';
 import { TripStatCard } from '@/components/TripStatCard';
 import { TripStopCard } from '@/components/TripStopCard';
 import {
-  tripBudget,
-  tripDays,
-  tripHeader,
-  tripStats,
+  dayMetaLabel,
+  formatINR,
+  formatTripDates,
+  tripPerTraveler,
+  tripPrepaid,
+  tripSitesCount,
   tripTravelerImages,
+  tripUnescoCount,
 } from '@/data/trips';
 import { useTheme } from '@/theme/ThemeProvider';
+import { useTripStore } from '@/store/tripStore';
 
 const stopTones = ['primary', 'secondary', 'gold'] as const;
 
 export default function TripsScreen() {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const [activeDayId, setActiveDayId] = useState(tripDays[0].id);
+
+  const trip = useTripStore((state) => state.trip);
+  const addDay = useTripStore((state) => state.addDay);
+  const removeDay = useTripStore((state) => state.removeDay);
+  const addStopToDay = useTripStore((state) => state.addStopToDay);
+  const removeStop = useTripStore((state) => state.removeStop);
+  const moveStop = useTripStore((state) => state.moveStop);
+
+  const [activeDayId, setActiveDayId] = useState(trip.days[0]?.id ?? '');
+  const [budgetOpen, setBudgetOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [pickerOpen, setPickerOpen] = useState(false);
 
   const activeDay =
-    tripDays.find((day) => day.id === activeDayId) ?? tripDays[0];
+    trip.days.find((day) => day.id === activeDayId) ?? trip.days[0];
 
-  const travelers = tripTravelerImages.slice(0, 3).map((image, index) => ({
-    id: `traveler-${index + 1}`,
-    name: `Traveler ${index + 1}`,
-    image,
-  }));
+  const travelers = tripTravelerImages
+    .slice(0, Math.min(trip.travelerCount, tripTravelerImages.length))
+    .map((image, index) => ({
+      id: `traveler-${index + 1}`,
+      name: `Traveler ${index + 1}`,
+      image,
+    }));
+
+  const sitesCount = tripSitesCount(trip);
+  const unescoCount = tripUnescoCount(trip);
+  const perTraveler = tripPerTraveler(trip);
+  const prepaid = tripPrepaid(trip);
+
+  const handleAddDay = () => {
+    const id = addDay();
+    setActiveDayId(id);
+  };
+
+  const confirmRemoveDay = () => {
+    if (!activeDay || trip.days.length <= 1) {
+      return;
+    }
+    Alert.alert(
+      'Remove day',
+      `Remove ${activeDay.title} and its ${activeDay.stops.length} stop(s)?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: () => {
+            const remaining = trip.days.filter((day) => day.id !== activeDay.id);
+            removeDay(activeDay.id);
+            setActiveDayId(remaining[0]?.id ?? '');
+          },
+        },
+      ],
+    );
+  };
+
+  const confirmRemoveStop = (stopId: string, stopName: string) => {
+    if (!activeDay) {
+      return;
+    }
+    Alert.alert(
+      'Remove stop',
+      `Remove ${stopName} from ${activeDay.title}?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Remove',
+          style: 'destructive',
+          onPress: () => removeStop(activeDay.id, stopId),
+        },
+      ],
+    );
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -45,10 +118,7 @@ export default function TripsScreen() {
       >
         <View style={styles.header}>
           <Text
-            style={[
-              theme.typography.brand,
-              { color: theme.colors.primary },
-            ]}
+            style={[theme.typography.brand, { color: theme.colors.primary }]}
           >
             Bharat Darshan
           </Text>
@@ -60,37 +130,41 @@ export default function TripsScreen() {
         contentContainerStyle={styles.content}
       >
         <TripHeaderCard
-          chip={tripHeader.chip}
-          title={tripHeader.title}
-          subtitle={tripHeader.subtitle}
-          dates={tripHeader.dates}
-          confirmed={tripHeader.confirmed}
+          chip="Rajasthan Circuit"
+          title={trip.title}
+          subtitle={trip.destination}
+          dates={formatTripDates(trip.startDate, trip.endDate)}
+          confirmed="Confirmed Trip"
           travelers={travelers}
-          extraCount={tripHeader.travelerCount - travelers.length}
+          extraCount={Math.max(0, trip.travelerCount - travelers.length)}
+          onEdit={() => setEditOpen(true)}
         />
 
         <View style={styles.statRow}>
           <TripStatCard
-            label={tripStats.sites.label}
-            value={tripStats.sites.value}
-            detail={tripStats.sites.detail}
+            label="Sites to Visit"
+            value={String(sitesCount)}
+            detail={
+              unescoCount > 0 ? `${unescoCount} UNESCO Sites` : 'Curated stops'
+            }
             icon="location-on"
             tone="primary"
           />
           <TripStatCard
-            label={tripStats.budget.label}
-            value={tripStats.budget.value}
-            detail={tripStats.budget.detail}
+            label="Est. Budget"
+            value={formatINR(trip.totalBudget)}
+            detail={`${formatINR(perTraveler)} / traveler`}
             icon="account-balance-wallet"
             tone="gold"
           />
         </View>
 
         <TripBudgetCard
-          total={tripBudget.total}
-          prepaid={tripBudget.prepaid}
-          prepaidNote={tripBudget.prepaidNote}
-          segments={tripBudget.segments}
+          total={trip.totalBudget}
+          prepaid={prepaid}
+          perTraveler={perTraveler}
+          categories={trip.categories}
+          onPress={() => setBudgetOpen(true)}
         />
 
         <View>
@@ -116,7 +190,7 @@ export default function TripsScreen() {
                   },
                 ]}
               >
-                {activeDay.title}
+                {activeDay?.title ?? 'No days yet'}
               </Text>
               <Text
                 style={[
@@ -127,38 +201,148 @@ export default function TripsScreen() {
                   },
                 ]}
               >
-                {activeDay.meta}
+                {activeDay ? dayMetaLabel(activeDay) : 'Add a day to begin'}
               </Text>
             </View>
-            <Text
-              style={[
-                theme.typography.labelMd,
-                { color: theme.colors.onSurfaceVariant },
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Add day"
+              onPress={handleAddDay}
+              hitSlop={6}
+              style={({ pressed }) => [
+                styles.addDayButton,
+                pressed && { opacity: 0.85 },
               ]}
             >
-              3 Days Planned
-            </Text>
+              <MaterialIcons
+                name="add"
+                size={16}
+                color={theme.colors.onPrimary}
+              />
+              <Text
+                style={[
+                  theme.typography.labelMd,
+                  { color: theme.colors.onPrimary },
+                ]}
+              >
+                Add day
+              </Text>
+            </Pressable>
           </View>
 
           <DayChipRow
-            days={tripDays}
-            activeId={activeDay.id}
+            days={trip.days}
+            activeId={activeDay?.id ?? ''}
             onSelect={setActiveDayId}
           />
 
+          {activeDay && trip.days.length > 1 ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Remove active day"
+              onPress={confirmRemoveDay}
+              hitSlop={6}
+              style={({ pressed }) => [
+                styles.removeDayButton,
+                pressed && { opacity: 0.8 },
+              ]}
+            >
+              <MaterialIcons
+                name="delete-sweep"
+                size={14}
+                color={theme.colors.error}
+              />
+              <Text
+                style={[
+                  theme.typography.labelMd,
+                  { color: theme.colors.error },
+                ]}
+              >
+                Remove this day
+              </Text>
+            </Pressable>
+          ) : null}
+
           <View style={styles.timeline}>
-            {activeDay.stops.map((stop, index) => (
+            {(activeDay?.stops ?? []).map((stop, index, arr) => (
               <View key={stop.id} style={styles.timelineEntry}>
                 <TripStopCard
                   stop={stop}
                   index={index}
                   tone={stopTones[index % stopTones.length]}
+                  canMoveUp={index > 0}
+                  canMoveDown={index < arr.length - 1}
+                  onMoveUp={() =>
+                    activeDay && moveStop(activeDay.id, stop.id, -1)
+                  }
+                  onMoveDown={() =>
+                    activeDay && moveStop(activeDay.id, stop.id, 1)
+                  }
+                  onRemove={() => confirmRemoveStop(stop.id, stop.name)}
                 />
               </View>
             ))}
+
+            {activeDay && activeDay.stops.length === 0 ? (
+              <View style={styles.emptyDay}>
+                <MaterialIcons
+                  name="explore"
+                  size={26}
+                  color={theme.colors.outline}
+                />
+                <Text
+                  style={[
+                    theme.typography.bodySm,
+                    {
+                      color: theme.colors.onSurfaceVariant,
+                      marginTop: theme.spacing.sm,
+                    },
+                  ]}
+                >
+                  No places on this day yet.
+                </Text>
+              </View>
+            ) : null}
           </View>
+
+          {activeDay ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Add place to day"
+              onPress={() => setPickerOpen(true)}
+              style={({ pressed }) => [
+                styles.addPlaceButton,
+                pressed && { opacity: 0.9 },
+              ]}
+            >
+              <MaterialIcons
+                name="add-circle-outline"
+                size={18}
+                color={theme.colors.primary}
+              />
+              <Text
+                style={[
+                  theme.typography.labelMd,
+                  { color: theme.colors.primary, fontWeight: '700' },
+                ]}
+              >
+                Add place to {activeDay.title}
+              </Text>
+            </Pressable>
+          ) : null}
         </View>
       </ScrollView>
+
+      <BudgetEditSheet
+        visible={budgetOpen}
+        onClose={() => setBudgetOpen(false)}
+      />
+      <TripEditSheet visible={editOpen} onClose={() => setEditOpen(false)} />
+      <PlacePickerSheet
+        visible={pickerOpen}
+        dayId={activeDay?.id ?? null}
+        onClose={() => setPickerOpen(false)}
+      />
     </View>
   );
 }
@@ -186,6 +370,23 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
       flexDirection: 'row',
       alignItems: 'flex-end',
       justifyContent: 'space-between',
+      gap: theme.spacing.md,
+    },
+    addDayButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      paddingHorizontal: theme.spacing.md,
+      paddingVertical: theme.spacing.sm,
+      borderRadius: theme.radii.chip,
+      backgroundColor: theme.colors.primary,
+    },
+    removeDayButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      alignSelf: 'flex-start',
+      gap: 4,
+      marginTop: theme.spacing.sm,
     },
     timeline: {
       marginTop: theme.spacing.md,
@@ -195,6 +396,23 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
     timelineEntry: {
       width: '100%',
       alignSelf: 'stretch',
+    },
+    emptyDay: {
+      alignItems: 'center',
+      paddingVertical: theme.spacing.xl,
+    },
+    addPlaceButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: theme.spacing.sm,
+      marginTop: theme.spacing.lg,
+      paddingVertical: theme.spacing.md,
+      borderRadius: theme.radii.chip,
+      borderWidth: 1.5,
+      borderColor: theme.colors.primary,
+      borderStyle: 'dashed',
+      backgroundColor: theme.colors.primaryContainer,
     },
   });
 }

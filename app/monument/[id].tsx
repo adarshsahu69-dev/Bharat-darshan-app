@@ -3,7 +3,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
-  Image,
   Linking,
   Pressable,
   ScrollView,
@@ -14,6 +13,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AddToTripSheet } from '@/components/AddToTripSheet';
+import { SafeImage } from '@/components/SafeImage';
 import { getMonument, getMonumentDetail, Monument } from '@/data/monuments';
 import { useTheme } from '@/theme/ThemeProvider';
 
@@ -31,6 +32,7 @@ export default function MonumentDetailScreen() {
   const [saved, setSaved] = useState(
     monument ? (monument.initiallySaved ?? false) : false,
   );
+  const [addOpen, setAddOpen] = useState(false);
 
   if (!monument) {
     return (
@@ -93,11 +95,10 @@ export default function MonumentDetailScreen() {
         contentContainerStyle={styles.scroll}
       >
         <View style={styles.heroWrap}>
-          <Image
-            source={{ uri: monument.image }}
+          <SafeImage
+            uri={monument.image}
             style={styles.hero}
-            resizeMode="cover"
-            accessibilityIgnoresInvertColors
+            accessibilityLabel={monument.name}
           />
           <LinearGradient
             colors={[
@@ -171,11 +172,10 @@ export default function MonumentDetailScreen() {
           <View style={styles.galleryRow}>
             <View style={styles.galleryLeft}>
               {detail?.galleryImage ? (
-                <Image
-                  source={{ uri: detail.galleryImage }}
+                <SafeImage
+                  uri={detail.galleryImage}
                   style={styles.galleryThumb}
-                  resizeMode="cover"
-                  accessibilityIgnoresInvertColors
+                  accessibilityLabel={`${monument.name} gallery`}
                 />
               ) : null}
               <View style={styles.photoCounter}>
@@ -260,7 +260,7 @@ export default function MonumentDetailScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Add to trip"
-          onPress={() => router.push('/trips')}
+          onPress={() => setAddOpen(true)}
           style={({ pressed }) => [
             styles.addToTripButton,
             pressed && { opacity: 0.92 },
@@ -281,6 +281,14 @@ export default function MonumentDetailScreen() {
           </Text>
         </Pressable>
       </View>
+
+      <AddToTripSheet
+        visible={addOpen}
+        monumentId={monumentId}
+        monumentName={monument.name}
+        onClose={() => setAddOpen(false)}
+        onAdded={() => router.push('/trips')}
+      />
     </View>
   );
 }
