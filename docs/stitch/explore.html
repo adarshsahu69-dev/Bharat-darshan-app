@@ -1,0 +1,382 @@
+<!DOCTYPE html><html lang="en" class="h-full"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bharat Darshan - Explore</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">/** @type {import('tailwindcss').Config} */
+globalThis.tailwind = globalThis.tailwind || {};
+globalThis.tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        'gold': '#D4A017',
+        'gold-container': '#FDF5DE',
+        'on-gold': '#382800',
+        'light-primary': '#B34A12',
+        'light-on-primary': '#FFFFFF',
+        'light-primary-container': '#FFDBCE',
+        'light-on-primary-container': '#3B1000',
+        'light-secondary': '#1F2A5C',
+        'light-on-secondary': '#FFFFFF',
+        'light-secondary-container': '#DFE0FF',
+        'light-on-secondary-container': '#061343',
+        'light-surface': '#FBF4E9',
+        'light-on-surface': '#211A15',
+        'light-surface-variant': '#EFE5D6',
+        'light-on-surface-variant': '#51443B',
+        'light-surface-container-low': '#F5EDE0',
+        'light-surface-container': '#EFE7D8',
+        'light-surface-container-high': '#E9DFCE',
+        'light-outline': '#857367',
+        'light-outline-variant': '#D6C7B7',
+        'dark-primary': '#FFB596',
+        'dark-on-primary': '#5F2200',
+        'dark-primary-container': '#8A3300',
+        'dark-on-primary-container': '#FFDBCE',
+        'dark-secondary': '#BAC3FF',
+        'dark-on-secondary': '#232F61',
+        'dark-secondary-container': '#3A4578',
+        'dark-on-secondary-container': '#DFE0FF',
+        'dark-surface': '#1A1410',
+        'dark-on-surface': '#ECE0D7',
+        'dark-surface-variant': '#51443B',
+        'dark-on-surface-variant': '#D6C7B7',
+        'dark-surface-container-low': '#231B15',
+        'dark-surface-container': '#2B221B',
+        'dark-surface-container-high': '#362C24',
+        'dark-outline': '#9F8D80',
+        'dark-outline-variant': '#51443B',
+      },
+      borderRadius: {
+        'sm': '6px',
+        'DEFAULT': '12px',
+        'md': '16px',
+        'lg': '20px',
+        'xl': '28px',
+        'full': '9999px',
+      },
+      spacing: {
+        'gutter-xs': '4px',
+        'gutter-sm': '8px',
+        'gutter-md': '16px',
+        'gutter-lg': '24px',
+        'gutter-xl': '32px',
+        'section': '40px',
+        'page-margin': '16px',
+      },
+      fontFamily: {
+        'display': ['"Playfair Display"', 'sans-serif'],
+        'headline': ['"Playfair Display"', 'sans-serif'],
+        'title': ['"Inter"', 'sans-serif'],
+        'body': ['"Inter"', 'sans-serif'],
+        'label': ['"Inter"', 'sans-serif'],
+      },
+      fontSize: {
+        'display-lg': ['40px', { lineHeight: '48px', letterSpacing: '-0.5px', fontWeight: '700' }],
+        'display-lg-mobile': ['30px', { lineHeight: '38px', letterSpacing: '-0.25px', fontWeight: '700' }],
+        'headline-lg': ['34px', { lineHeight: '42px', letterSpacing: '-0.25px', fontWeight: '700' }],
+        'headline-lg-mobile': ['26px', { lineHeight: '34px', letterSpacing: '0px', fontWeight: '700' }],
+        'headline-md': ['22px', { lineHeight: '28px', fontWeight: '600' }],
+        'headline-sm': ['18px', { lineHeight: '24px', fontWeight: '600' }],
+        'title-lg': ['18px', { lineHeight: '24px', fontWeight: '600' }],
+        'title-md': ['15px', { lineHeight: '20px', fontWeight: '600' }],
+        'title-sm': ['13px', { lineHeight: '18px', fontWeight: '600' }],
+        'body-lg': ['16px', { lineHeight: '24px', fontWeight: '400' }],
+        'body-md': ['14px', { lineHeight: '20px', fontWeight: '400' }],
+        'body-sm': ['12px', { lineHeight: '16px', fontWeight: '400' }],
+        'label-lg': ['14px', { lineHeight: '20px', fontWeight: '600' }],
+        'label-md': ['12px', { lineHeight: '16px', fontWeight: '500' }],
+        'label-sm': ['11px', { lineHeight: '14px', letterSpacing: '0.5px', fontWeight: '600' }],
+      },
+      transitionDuration: {
+        'state-change': '150ms',
+        'surface-enter': '280ms',
+        'surface-exit': '180ms',
+      },
+      transitionDelay: {
+        'state-change': '0ms',
+        'surface-enter': '0ms',
+        'surface-exit': '0ms',
+      },
+      transitionTimingFunction: {
+        'state-change': 'cubic-bezier(0.4, 0, 0.2, 1)',
+        'surface-enter': 'cubic-bezier(0, 0, 0.2, 1)',
+        'surface-exit': 'cubic-bezier(0.4, 0, 1, 1)',
+      },
+    },
+  },
+};
+if (typeof module !== 'undefined') module.exports = globalThis.tailwind.config;
+</script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet">
+  <style>
+    .material-symbols-outlined, .material-symbols-rounded, .material-symbols-sharp, .material-icons {
+      display: inline-block; width: 1em; height: 1em; line-height: 1 !important; box-sizing: content-box; overflow: hidden; white-space: nowrap; direction: ltr; vertical-align: middle;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-light-surface text-light-on-surface min-h-[884px] font-body antialiased flex flex-col justify-between selection:bg-light-primary-container selection:text-light-on-primary-container" data-stitch-vh="min-h-[884px]===min-h-screen">
+
+  <!-- Sticky Top Header & Filters -->
+  <header class="sticky top-0 z-30 bg-light-surface/95 backdrop-blur-md px-4 pt-3 pb-3 border-b border-light-outline-variant/30 space-y-3">
+    <!-- Android Status Bar -->
+    <div class="flex items-center justify-between text-body-sm text-light-on-surface-variant font-medium">
+      <span class="tabular-nums">9:41</span>
+      <div class="flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-sm">signal_cellular_4_bar</span>
+        <span class="material-symbols-outlined text-sm">wifi</span>
+        <span class="material-symbols-outlined text-sm">battery_full</span>
+      </div>
+    </div>
+
+    <!-- Title & Search Bar with Filter Button -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="font-headline text-headline-sm text-light-secondary leading-tight">Explore Destinations</h1>
+        <p class="text-body-sm text-light-on-surface-variant">Over 4,000 national monuments &amp; sacred sites</p>
+      </div>
+      <button type="button" aria-label="Map view shortcut" onclick="window.location.href=&#39;../heritage-map/HeritageMap.html&#39;" class="w-10 h-10 rounded-full bg-light-secondary-container text-light-secondary flex items-center justify-center hover:opacity-90">
+        <span class="material-symbols-outlined text-xl">map</span>
+      </button>
+    </div>
+
+    <!-- Search input row with filter toggle -->
+    <div class="flex items-center gap-2">
+      <form role="search" class="flex-1 flex items-center gap-2 px-3.5 py-2.5 rounded-full bg-light-surface-container-low border border-light-outline-variant/50 shadow-sm focus-within:border-light-primary focus-within:ring-2 focus-within:ring-light-primary/20">
+        <span class="material-symbols-outlined text-light-primary text-xl">search</span>
+        <input type="search" aria-label="Search destinations" value="Forts &amp; Temples" placeholder="Search by state, dynasty, name..." class="flex-1 bg-transparent border-0 p-0 text-light-on-surface font-body text-body-md focus:ring-0">
+        <button type="button" aria-label="Clear search" class="text-light-outline hover:text-light-on-surface">
+          <span class="material-symbols-outlined text-base">close</span>
+        </button>
+      </form>
+      <button type="button" aria-label="Open filter settings" class="w-11 h-11 rounded-full bg-light-primary text-light-on-primary flex items-center justify-center shadow-sm hover:opacity-90 flex-shrink-0">
+        <span class="material-symbols-outlined text-xl">tune</span>
+      </button>
+    </div>
+
+    <!-- Filter Chips Row: State, Category, Rating, Entry Fee, Best Season -->
+    <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pt-1">
+      <!-- State Filter (Active) -->
+      <button type="button" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-light-secondary text-light-on-secondary font-label text-label-sm font-semibold flex-shrink-0 shadow-sm">
+        <span>State: Rajasthan</span>
+        <span class="material-symbols-outlined text-sm">arrow_drop_down</span>
+      </button>
+
+      <!-- Category Filter -->
+      <button type="button" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-light-surface-container text-light-on-surface font-label text-label-sm font-medium border border-light-outline-variant/50 hover:bg-light-surface-variant flex-shrink-0">
+        <span class="material-symbols-outlined text-sm text-light-primary">category</span>
+        <span>Category: Forts</span>
+        <span class="material-symbols-outlined text-sm text-light-outline">arrow_drop_down</span>
+      </button>
+
+      <!-- Rating Filter -->
+      <button type="button" class="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-light-surface-container text-light-on-surface font-label text-label-sm font-medium border border-light-outline-variant/50 hover:bg-light-surface-variant flex-shrink-0">
+        <span class="material-symbols-outlined text-sm text-gold" style="font-variation-settings: &#39;FILL&#39; 1;">star</span>
+        <span>4.5+</span>
+      </button>
+
+      <!-- Entry Fee Filter -->
+      <button type="button" class="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-light-surface-container text-light-on-surface font-label text-label-sm font-medium border border-light-outline-variant/50 hover:bg-light-surface-variant flex-shrink-0">
+        <span>Entry: Under ₹100</span>
+      </button>
+
+      <!-- Best Season Filter -->
+      <button type="button" class="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-light-surface-container text-light-on-surface font-label text-label-sm font-medium border border-light-outline-variant/50 hover:bg-light-surface-variant flex-shrink-0">
+        <span class="material-symbols-outlined text-sm text-light-primary">ac_unit</span>
+        <span>Winter Season</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Heritage List -->
+  <main class="flex-1 overflow-y-auto px-4 py-4 pb-24 space-y-4">
+    <div class="flex items-center justify-between text-body-sm text-light-on-surface-variant px-1">
+      <span class="font-medium"><strong class="text-light-secondary font-semibold">24 heritage places</strong> found</span>
+      <span class="flex items-center gap-1 text-light-primary font-semibold cursor-pointer">
+        Sort: Recommended <span class="material-symbols-outlined text-sm">swap_vert</span>
+      </span>
+    </div>
+
+    <!-- Place Card 1: Amber Fort (Jaipur) -->
+    <article class="rounded-xl overflow-hidden bg-light-surface-container-low border border-light-outline-variant/40 shadow-sm hover:shadow-md transition-shadow">
+      <div class="relative h-48 w-full">
+        <img src="https://lh3.googleusercontent.com/aida/ALJJyrAsF40ZXN-v1Vulvw4aG7ozy4xUh0rqhqOFMW886NrUB8-GWJf9jZwEkv-Ajh0PFbQ7zXhxjaw-voWbJKcWJhvVjUH2pm-0EJyjpfM4c-BjVlBoHgYLLJ4bOMmDh1o26k26rnK3ivgSB-o-HPB_KbnJmvzvkGLTViG3L4XzwDRBau4qjDos9RrEdaX7Hb2dEKKcUCx4oTJfCvDBML9UVR_WGyPIUmgC1M2VwfiYFzF7iDrtg1HjyZDRlg" alt="Amber Fort Jaipur" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+        <div class="absolute top-3 left-3">
+          <span class="px-2.5 py-1 rounded-full bg-gold-container text-on-gold text-label-sm font-bold flex items-center gap-1 shadow-sm">
+            <span class="material-symbols-outlined text-xs" style="font-variation-settings: &#39;FILL&#39; 1;">verified</span>
+            UNESCO Site
+          </span>
+        </div>
+        <button type="button" aria-label="Bookmark Amber Fort" class="absolute top-3 right-3 w-9 h-9 rounded-full bg-light-surface/90 text-light-primary flex items-center justify-center hover:bg-light-primary hover:text-white transition-colors shadow">
+          <span class="material-symbols-outlined text-lg" style="font-variation-settings: &#39;FILL&#39; 1;">bookmark</span>
+        </button>
+        <div class="absolute bottom-3 left-3 right-3 flex items-end justify-between text-white">
+          <div>
+            <span class="text-label-sm text-amber-200 font-semibold uppercase tracking-wider">Hill Forts of Rajasthan</span>
+            <h2 class="font-headline text-headline-sm font-bold text-white leading-tight">Amber Fort &amp; Palace</h2>
+          </div>
+          <span class="px-2 py-1 rounded-md bg-light-secondary/80 backdrop-blur-sm text-white font-label text-label-sm font-bold flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs text-gold" style="font-variation-settings: &#39;FILL&#39; 1;">star</span> 4.9
+          </span>
+        </div>
+      </div>
+      <div class="p-4">
+        <p class="text-body-sm text-light-on-surface-variant font-medium mb-3">
+          16th-century fortress on Cheel ka Teela with serpentine ramparts and mirror-inlaid royal chambers.
+        </p>
+        <div class="flex items-center justify-between text-body-sm pt-2 border-t border-light-outline-variant/30">
+          <div class="flex items-center gap-3 text-light-on-surface-variant">
+            <span class="flex items-center gap-1 text-light-secondary font-medium">
+              <span class="material-symbols-outlined text-sm text-light-primary">location_on</span> Jaipur
+            </span>
+            <span>•</span>
+            <span class="text-light-on-surface font-semibold">₹100</span>
+          </div>
+          <a href="../place-details/PlaceDetails.html" class="inline-flex items-center gap-1 text-light-primary font-label text-label-md font-bold hover:underline">
+            View Details <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </a>
+        </div>
+      </div>
+    </article>
+
+    <!-- Place Card 2: Brihadeeswara Temple (Thanjavur) -->
+    <article class="rounded-xl overflow-hidden bg-light-surface-container-low border border-light-outline-variant/40 shadow-sm hover:shadow-md transition-shadow">
+      <div class="relative h-48 w-full">
+        <img src="https://lh3.googleusercontent.com/aida/ALJJyrA4osHXyztggwmGb24MGkd2cmMelQ_xr7JwJasgkw2_PMfYXZyWbN5MDNGt1TxE2HfjPPmUzQ3XUYv5SHu-hV7N0oQWbLQN2ucqtqkqbrEcV3AvnuC0loUSgY5VkrbXmzsBYJAAJqckEP-vKuB35zczjZyPYwGahlhW_9_-zpkWyfbQbgRP2DMt00Rr3EnxYCXVC6wXYk7GjZo2xr4MANB1JKy8TkOCuTf0SHgkA1WlbNWDK-RPulm1b-0oZg0_" alt="Brihadeeswara Temple Thanjavur" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+        <div class="absolute top-3 left-3">
+          <span class="px-2.5 py-1 rounded-full bg-gold-container text-on-gold text-label-sm font-bold flex items-center gap-1 shadow-sm">
+            <span class="material-symbols-outlined text-xs" style="font-variation-settings: &#39;FILL&#39; 1;">verified</span>
+            Great Living Chola Temple
+          </span>
+        </div>
+        <button type="button" aria-label="Bookmark Brihadeeswara Temple" class="absolute top-3 right-3 w-9 h-9 rounded-full bg-light-surface/90 text-light-secondary flex items-center justify-center hover:bg-light-primary hover:text-white transition-colors shadow">
+          <span class="material-symbols-outlined text-lg">bookmark_border</span>
+        </button>
+        <div class="absolute bottom-3 left-3 right-3 flex items-end justify-between text-white">
+          <div>
+            <span class="text-label-sm text-amber-200 font-semibold uppercase tracking-wider">Chola Dynasty (1010 CE)</span>
+            <h2 class="font-headline text-headline-sm font-bold text-white leading-tight">Brihadeeswara Temple</h2>
+          </div>
+          <span class="px-2 py-1 rounded-md bg-light-secondary/80 backdrop-blur-sm text-white font-label text-label-sm font-bold flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs text-gold" style="font-variation-settings: &#39;FILL&#39; 1;">star</span> 4.9
+          </span>
+        </div>
+      </div>
+      <div class="p-4">
+        <p class="text-body-sm text-light-on-surface-variant font-medium mb-3">
+          Monolithic granite temple dedicated to Lord Shiva with an astronomical vimana and 16-foot monolithic Nandi.
+        </p>
+        <div class="flex items-center justify-between text-body-sm pt-2 border-t border-light-outline-variant/30">
+          <div class="flex items-center gap-3 text-light-on-surface-variant">
+            <span class="flex items-center gap-1 text-light-secondary font-medium">
+              <span class="material-symbols-outlined text-sm text-light-primary">location_on</span> Thanjavur, TN
+            </span>
+            <span>•</span>
+            <span class="text-light-on-surface font-semibold">Free Entry</span>
+          </div>
+          <a href="../place-details/PlaceDetails.html" class="inline-flex items-center gap-1 text-light-primary font-label text-label-md font-bold hover:underline">
+            View Details <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </a>
+        </div>
+      </div>
+    </article>
+
+    <!-- Place Card 3: Stone Chariot, Hampi -->
+    <article class="rounded-xl overflow-hidden bg-light-surface-container-low border border-light-outline-variant/40 shadow-sm hover:shadow-md transition-shadow">
+      <div class="relative h-48 w-full">
+        <img src="https://lh3.googleusercontent.com/aida/ALJJyrCfaE_puDwAt_gDYX1wh83Nq3yC5LZoJ-vBjkCckkotB2IodsL0WMhfqjAhtsiE5t0fApKx0z5H7WQzgljw25VrxQF08rh7QjLXLmeQOOrOVsyLr24Sf2M0amEUWzQXm0Z3UTJCPEA8L_KWH4xT0TCuzTQ2MKZpwlt8kQJpnS-L_L07n8YMCubzj3reuqz9XexJ7vbP6vhHapIPEZEfWj-AKJEAo4qgQcbgb6mZv076zZ-ZPzpqHQ" alt="Hampi Stone Chariot Karnataka" class="w-full h-full object-cover">
+        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/20"></div>
+        <div class="absolute top-3 left-3">
+          <span class="px-2.5 py-1 rounded-full bg-gold-container text-on-gold text-label-sm font-bold flex items-center gap-1 shadow-sm">
+            <span class="material-symbols-outlined text-xs" style="font-variation-settings: &#39;FILL&#39; 1;">verified</span>
+            Vijayanagara Empire
+          </span>
+        </div>
+        <button type="button" aria-label="Bookmark Hampi" class="absolute top-3 right-3 w-9 h-9 rounded-full bg-light-surface/90 text-light-secondary flex items-center justify-center hover:bg-light-primary hover:text-white transition-colors shadow">
+          <span class="material-symbols-outlined text-lg">bookmark_border</span>
+        </button>
+        <div class="absolute bottom-3 left-3 right-3 flex items-end justify-between text-white">
+          <div>
+            <span class="text-label-sm text-amber-200 font-semibold uppercase tracking-wider">Vittala Complex</span>
+            <h2 class="font-headline text-headline-sm font-bold text-white leading-tight">Stone Chariot &amp; Temples</h2>
+          </div>
+          <span class="px-2 py-1 rounded-md bg-light-secondary/80 backdrop-blur-sm text-white font-label text-label-sm font-bold flex items-center gap-1">
+            <span class="material-symbols-outlined text-xs text-gold" style="font-variation-settings: &#39;FILL&#39; 1;">star</span> 4.8
+          </span>
+        </div>
+      </div>
+      <div class="p-4">
+        <p class="text-body-sm text-light-on-surface-variant font-medium mb-3">
+          Ornate stone shrine dedicated to Garuda set amidst dramatic boulder hills and musical pillar pavilions.
+        </p>
+        <div class="flex items-center justify-between text-body-sm pt-2 border-t border-light-outline-variant/30">
+          <div class="flex items-center gap-3 text-light-on-surface-variant">
+            <span class="flex items-center gap-1 text-light-secondary font-medium">
+              <span class="material-symbols-outlined text-sm text-light-primary">location_on</span> Hampi, Karnataka
+            </span>
+            <span>•</span>
+            <span class="text-light-on-surface font-semibold">₹40</span>
+          </div>
+          <a href="../place-details/PlaceDetails.html" class="inline-flex items-center gap-1 text-light-primary font-label text-label-md font-bold hover:underline">
+            View Details <span class="material-symbols-outlined text-sm">arrow_forward</span>
+          </a>
+        </div>
+      </div>
+    </article>
+
+  </main>
+
+  <!-- Bottom Navigation Bar (Explore Tab Active) -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-light-surface border-t border-light-outline-variant/40 shadow-lg px-2 py-1.5">
+    <div class="grid grid-cols-5 items-center justify-items-center max-w-md mx-auto">
+      <!-- Home Tab -->
+      <a href="../home/Home.html" class="flex flex-col items-center gap-0.5 py-1 px-3 text-light-on-surface-variant hover:text-light-primary transition-colors">
+        <div class="w-14 h-7 rounded-full flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">home</span>
+        </div>
+        <span class="font-label text-label-sm font-medium tracking-tight">Home</span>
+      </a>
+
+      <!-- Explore Tab (Active) -->
+      <a href="../explore/Explore.html" class="flex flex-col items-center gap-0.5 py-1 px-3 text-light-primary transition-colors">
+        <div class="w-14 h-7 rounded-full bg-light-primary-container flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl text-light-on-primary-container" style="font-variation-settings: &#39;FILL&#39; 1;">explore</span>
+        </div>
+        <span class="font-label text-label-sm font-bold tracking-tight">Explore</span>
+      </a>
+
+      <!-- Map Tab -->
+      <a href="../heritage-map/HeritageMap.html" class="flex flex-col items-center gap-0.5 py-1 px-3 text-light-on-surface-variant hover:text-light-primary transition-colors">
+        <div class="w-14 h-7 rounded-full flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">map</span>
+        </div>
+        <span class="font-label text-label-sm font-medium tracking-tight">Map</span>
+      </a>
+
+      <!-- Trips Tab -->
+      <a href="../trip-planner/TripPlanner.html" class="flex flex-col items-center gap-0.5 py-1 px-3 text-light-on-surface-variant hover:text-light-primary transition-colors">
+        <div class="w-14 h-7 rounded-full flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">luggage</span>
+        </div>
+        <span class="font-label text-label-sm font-medium tracking-tight">Trips</span>
+      </a>
+
+      <!-- Profile Tab -->
+      <a href="#" class="flex flex-col items-center gap-0.5 py-1 px-3 text-light-on-surface-variant hover:text-light-primary transition-colors">
+        <div class="w-14 h-7 rounded-full flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">person</span>
+        </div>
+        <span class="font-label text-label-sm font-medium tracking-tight">Profile</span>
+      </a>
+    </div>
+  </nav>
+
+
+
+</body></html>
