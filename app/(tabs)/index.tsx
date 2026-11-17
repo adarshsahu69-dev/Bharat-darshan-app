@@ -2,7 +2,6 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
-  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -12,12 +11,16 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CategoryChip } from '@/components/CategoryChip';
+import { EmptyState } from '@/components/EmptyState';
 import { FeaturedCard } from '@/components/FeaturedCard';
 import { PopularCard } from '@/components/PopularCard';
+import { SafeImage } from '@/components/SafeImage';
 import { SearchBar } from '@/components/SearchBar';
 import { SectionHeader } from '@/components/SectionHeader';
 import {
+  CategoryId,
   featuredMonuments,
+  filterMonuments,
   homeCategories,
   popularMonuments,
   travelerAvatar,
@@ -28,20 +31,44 @@ export default function HomeScreen() {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const router = useRouter();
-  const [activeCategory, setActiveCategory] = useState('forts');
+  const [activeCategory, setActiveCategory] = useState<CategoryId | null>(null);
   const [search, setSearch] = useState('');
 
-  const featured = featuredMonuments[0];
+  const featured = featuredMonuments[0] ?? popularMonuments[0];
+
+  // One filtered list drives both the category chips and the search box.
+  const results = useMemo(
+    () =>
+      filterMonuments({
+        categoryId: activeCategory ?? undefined,
+        search,
+      }),
+    [activeCategory, search],
+  );
+
+  const isFiltering = activeCategory !== null || search.trim().length > 0;
+  const activeLabel =
+    homeCategories.find((category) => category.id === activeCategory)?.label ??
+    'All Sites';
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <HomeHeader search={search} onSearchChange={setSearch} />
+      <HomeHeader
+        search={search}
+        onSearchChange={setSearch}
+        onClear={() => setSearch('')}
+      />
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: theme.spacing.section }}
       >
-        <View style={{ paddingTop: theme.spacing.md, paddingLeft: theme.spacing.page }}>
+        <View
+          style={{
+            paddingTop: theme.spacing.md,
+            paddingLeft: theme.spacing.page,
+          }}
+        >
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -58,67 +85,115 @@ export default function HomeScreen() {
                 icon={category.icon}
                 tone={category.tone}
                 active={activeCategory === category.id}
-                onPress={() => setActiveCategory(category.id)}
+                onPress={() =>
+                  setActiveCategory((current) =>
+                    current === category.id ? null : category.id,
+                  )
+                }
               />
             ))}
           </ScrollView>
         </View>
 
-        <View
-          style={{
-            paddingHorizontal: theme.spacing.page,
-            marginTop: theme.spacing.xl,
-          }}
-        >
-          <SectionHeader
-            eyebrow="Curated Discovery"
-            title="Featured Heritage Sites"
-            right={
-              <Text
-                style={[
-                  theme.typography.labelMdStrong,
-                  { color: theme.colors.primary },
-                ]}
-              >
-                1 / 4
-              </Text>
-            }
-          />
-          <FeaturedCard
-            monument={featured}
-            onPress={() => router.push(`/monument/${featured.id}`)}
-          />
-        </View>
-
-        <View
-          style={{
-            paddingHorizontal: theme.spacing.page,
-            marginTop: theme.spacing.xl,
-          }}
-        >
-          <SectionHeader
-            eyebrow="Nearby Wonders"
-            title="Popular Near You"
-            right={<SeeAll onPress={() => router.push('/explore')} />}
-          />
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{
-              gap: theme.spacing.lg,
-              paddingRight: theme.spacing.page,
-              paddingVertical: theme.spacing.xs,
+        {isFiltering ? (
+          <View
+            style={{
+              paddingHorizontal: theme.spacing.page,
+              marginTop: theme.spacing.lg,
             }}
           >
-            {popularMonuments.map((monument) => (
-              <PopularCard
-                key={monument.id}
-                monument={monument}
-                onPress={() => router.push(`/monument/${monument.id}`)}
+            <SectionHeader
+              eyebrow="Filtered Results"
+              title={search.trim() ? `Results for “${search.trim()}”` : activeLabel}
+              right={
+                <Text
+                  style={[
+                    theme.typography.labelMdStrong,
+                    { color: theme.colors.primary },
+                  ]}
+                >
+                  {results.length}
+                </Text>
+              }
+            />
+
+            {results.length === 0 ? (
+              <EmptyState onAction={() => {
+                setActiveCategory(null);
+                setSearch('');
+              }} />
+            ) : (
+              <View style={{ gap: theme.spacing.lg }}>
+                {results.map((monument) => (
+                  <PopularCard
+                    key={monument.id}
+                    monument={monument}
+                    fullWidth
+                    onPress={() => router.push(`/monument/${monument.id}`)}
+                  />
+                ))}
+              </View>
+            )}
+          </View>
+        ) : (
+          <>
+            <View
+              style={{
+                paddingHorizontal: theme.spacing.page,
+                marginTop: theme.spacing.xl,
+              }}
+            >
+              <SectionHeader
+                eyebrow="Curated Discovery"
+                title="Featured Heritage Sites"
+                right={
+                  <Text
+                    style={[
+                      theme.typography.labelMdStrong,
+                      { color: theme.colors.primary },
+                    ]}
+                  >
+                    1 / 4
+                  </Text>
+                }
               />
-            ))}
-          </ScrollView>
-        </View>
+              <FeaturedCard
+                monument={featured}
+                onPress={() => router.push(`/monument/${featured.id}`)}
+              />
+            </View>
+
+            <View
+              style={{
+                paddingHorizontal: theme.spacing.page,
+                marginTop: theme.spacing.xl,
+              }}
+            >
+              <SectionHeader
+                eyebrow="Nearby Wonders"
+                title="Popular Near You"
+                right={<SeeAll onPress={() => router.push('/explore')} />}
+              />
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{
+                  gap: theme.spacing.lg,
+                  paddingRight: theme.spacing.page,
+                  paddingVertical: theme.spacing.xs,
+                }}
+              >
+                {popularMonuments.map((monument) => (
+                  <PopularCard
+                    key={monument.id}
+                    monument={monument}
+                    onPress={() => router.push(`/monument/${monument.id}`)}
+                  />
+                ))}
+              </ScrollView>
+            </View>
+          </>
+        )}
       </ScrollView>
     </View>
   );
@@ -127,9 +202,11 @@ export default function HomeScreen() {
 function HomeHeader({
   search,
   onSearchChange,
+  onClear,
 }: {
   search: string;
   onSearchChange: (text: string) => void;
+  onClear: () => void;
 }) {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -142,10 +219,7 @@ function HomeHeader({
       <View style={styles.header}>
         <View style={styles.brandRow}>
           <Text
-            style={[
-              theme.typography.brand,
-              { color: theme.colors.primary },
-            ]}
+            style={[theme.typography.brand, { color: theme.colors.primary }]}
           >
             Bharat Darshan
           </Text>
@@ -180,7 +254,13 @@ function HomeHeader({
           <NotificationButton />
         </View>
 
-        <SearchBar value={search} onChangeText={onSearchChange} />
+        <SearchBar
+          value={search}
+          onChangeText={onSearchChange}
+          onClear={search.length > 0 ? onClear : undefined}
+          placeholder="Search forts, temples, palaces, museums..."
+          accessibilityLabel="Search monuments"
+        />
       </View>
     </SafeAreaView>
   );
@@ -205,12 +285,13 @@ function Avatar() {
           </Text>
         </View>
       ) : (
-        <Image
-          source={{ uri: travelerAvatar }}
-          style={styles.avatarImage}
+        <SafeImage
+          uri={travelerAvatar}
+          containerStyle={styles.avatarImage}
           resizeMode="cover"
-          onError={() => setFailed(true)}
-          accessibilityIgnoresInvertColors
+          accessibilityLabel="Traveler avatar"
+          iconName="person"
+          iconSize={20}
         />
       )}
       <View style={styles.onlineDot} />
@@ -252,10 +333,7 @@ function SeeAll({ onPress }: { onPress: () => void }) {
       accessibilityLabel="See all popular sites"
       onPress={onPress}
       hitSlop={8}
-      style={({ pressed }) => [
-        styles.seeAll,
-        pressed && { opacity: 0.7 },
-      ]}
+      style={({ pressed }) => [styles.seeAll, pressed && { opacity: 0.7 }]}
     >
       <Text
         style={[
@@ -304,7 +382,8 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
       padding: 2,
     },
     avatarImage: {
-      flex: 1,
+      width: 40,
+      height: 40,
       borderRadius: 20,
     },
     avatarFallback: {

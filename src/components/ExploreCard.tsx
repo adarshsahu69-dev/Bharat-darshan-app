@@ -1,8 +1,9 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useMemo, useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { SafeImage } from '@/components/SafeImage';
 import { Monument } from '@/data/monuments';
 import { useTheme } from '@/theme/ThemeProvider';
 
@@ -23,11 +24,10 @@ export function ExploreCard({ monument, onPress }: Props) {
       style={({ pressed }) => [styles.card, pressed && { opacity: 0.96 }]}
     >
       <View style={styles.imageWrap}>
-        <Image
-          source={{ uri: monument.image }}
+        <SafeImage
+          uri={monument.image}
           style={StyleSheet.absoluteFill}
-          resizeMode="cover"
-          accessibilityIgnoresInvertColors
+          accessibilityLabel={monument.name}
         />
         <LinearGradient
           colors={[

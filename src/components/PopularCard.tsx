@@ -1,16 +1,19 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useMemo } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { SafeImage } from '@/components/SafeImage';
 import { Monument } from '@/data/monuments';
 import { useTheme } from '@/theme/ThemeProvider';
 
 type Props = {
   monument: Monument;
   onPress?: () => void;
+  /** Set true to stretch the card to its parent's width. */
+  fullWidth?: boolean;
 };
 
-export function PopularCard({ monument, onPress }: Props) {
+export function PopularCard({ monument, onPress, fullWidth }: Props) {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
@@ -21,15 +24,15 @@ export function PopularCard({ monument, onPress }: Props) {
       onPress={onPress}
       style={({ pressed }) => [
         styles.card,
+        fullWidth && styles.cardFull,
         pressed && { opacity: 0.92 },
       ]}
     >
       <View style={styles.imageWrap}>
-        <Image
-          source={{ uri: monument.image }}
+        <SafeImage
+          uri={monument.image}
           style={StyleSheet.absoluteFill}
-          resizeMode="cover"
-          accessibilityIgnoresInvertColors
+          accessibilityLabel={monument.name}
         />
 
         <View style={styles.ratingBadge}>
@@ -135,6 +138,9 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
       borderWidth: 1,
       borderColor: `${theme.colors.outlineVariant}66`,
       ...theme.shadows.warmSoft,
+    },
+    cardFull: {
+      width: '100%',
     },
     imageWrap: {
       height: 144,

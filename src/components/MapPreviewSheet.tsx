@@ -1,13 +1,13 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import {
-  Image,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 
+import { SafeImage } from '@/components/SafeImage';
 import { MapPreview } from '@/data/map';
 import { useTheme } from '@/theme/ThemeProvider';
 
@@ -37,11 +37,10 @@ export function MapPreviewSheet({
 
       <View style={styles.cardBody}>
         <View style={styles.thumbWrap}>
-          <Image
-            source={{ uri: preview.image }}
+          <SafeImage
+            uri={preview.image}
             style={styles.thumb}
-            resizeMode="cover"
-            accessibilityIgnoresInvertColors
+            accessibilityLabel={preview.name}
           />
           <View style={styles.thumbRating}>
             <MaterialIcons name="star" size={10} color={theme.colors.gold} />

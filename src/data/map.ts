@@ -1,10 +1,17 @@
 /**
- * Mock data for the Heritage Map screen.
- * Positions and counts are approximate placeholders; swap for a GeoJSON layer
- * when the data layer is added.
+ * Heritage Map data.
+ *
+ * Pins are derived from the shared monument list so the map, Home and Explore
+ * always agree. Category counts are computed from real data.
  */
 
-export type MapCategoryId = 'all' | 'forts' | 'temples' | 'palaces';
+import {
+  allMonuments,
+  CategoryId,
+  Monument,
+} from '@/data/monuments';
+
+export type MapCategoryId = 'all' | CategoryId;
 
 export type MapCategory = {
   id: MapCategoryId;
@@ -12,7 +19,7 @@ export type MapCategory = {
   /** Short label shown on the chip. */
   chipLabel: string;
   count: number;
-  icon: 'castle' | 'temple-hindu' | 'account-balance' | 'explore';
+  icon: 'explore' | 'castle' | 'temple-hindu' | 'account-balance' | 'verified' | 'museum' | 'forest';
 };
 
 /** Default camera when no search target is active. */
@@ -25,11 +32,26 @@ export const mapInitialRegion = {
 
 export const mapSearchPlaceholder = 'Search monuments, cities, or landmarks';
 
+const countIn = (id: MapCategoryId): number => {
+  if (id === 'all') {
+    return allMonuments.length;
+  }
+  if (id === 'unesco') {
+    return allMonuments.filter((monument) => monument.isUnesco).length;
+  }
+  return allMonuments.filter((monument) =>
+    monument.categories.includes(id as CategoryId),
+  ).length;
+};
+
 export const mapCategories: MapCategory[] = [
-  { id: 'all', label: 'All Sites', chipLabel: 'All Sites', count: 42, icon: 'explore' },
-  { id: 'forts', label: 'Forts', chipLabel: 'Forts', count: 8, icon: 'castle' },
-  { id: 'temples', label: 'Temples', chipLabel: 'Temples', count: 14, icon: 'temple-hindu' },
-  { id: 'palaces', label: 'Palaces', chipLabel: 'Palaces', count: 6, icon: 'account-balance' },
+  { id: 'all', label: 'All Sites', chipLabel: 'All Sites', count: countIn('all'), icon: 'explore' },
+  { id: 'forts', label: 'Forts', chipLabel: 'Forts', count: countIn('forts'), icon: 'castle' },
+  { id: 'temples', label: 'Temples', chipLabel: 'Temples', count: countIn('temples'), icon: 'temple-hindu' },
+  { id: 'palaces', label: 'Palaces', chipLabel: 'Palaces', count: countIn('palaces'), icon: 'account-balance' },
+  { id: 'unesco', label: 'UNESCO', chipLabel: 'UNESCO', count: countIn('unesco'), icon: 'verified' },
+  { id: 'museums', label: 'Museums', chipLabel: 'Museums', count: countIn('museums'), icon: 'museum' },
+  { id: 'nature', label: 'Nature', chipLabel: 'Nature', count: countIn('nature'), icon: 'forest' },
 ];
 
 export type MapPin = {
@@ -42,59 +64,44 @@ export type MapPin = {
   longitude: number;
   /** Small marker, used for non-selected pins. */
   isPrimary?: boolean;
+  image: string;
+  ticketPrice: number;
+  isUnesco: boolean;
+  rating: number;
+  city: string;
+  state: string;
 };
 
-export const mapPins: MapPin[] = [
-  {
-    id: 'amber-fort',
-    monumentId: 'amber-fort',
-    name: 'Amber Fort',
-    category: 'forts',
-    latitude: 26.9858,
-    longitude: 75.8513,
-    isPrimary: true,
-  },
-  {
-    id: 'jaigarh-fort',
-    monumentId: 'amber-fort',
-    name: 'Jaigarh Fort',
-    category: 'forts',
-    latitude: 27.0,
-    longitude: 75.8534,
-  },
-  {
-    id: 'nahargarh',
-    monumentId: 'amber-fort',
-    name: 'Nahargarh',
-    category: 'forts',
-    latitude: 26.9384,
-    longitude: 75.8156,
-  },
-  {
-    id: 'jal-mahal',
-    monumentId: 'amber-fort',
-    name: 'Jal Mahal',
-    category: 'palaces',
-    latitude: 26.9536,
-    longitude: 75.8454,
-  },
-  {
-    id: 'govind-dev-ji',
-    monumentId: 'amber-fort',
-    name: 'Govind Dev Ji',
-    category: 'temples',
-    latitude: 26.9924,
-    longitude: 75.8229,
-  },
-  {
-    id: 'hawa-mahal',
-    monumentId: 'hawa-mahal',
-    name: 'Hawa Mahal',
-    category: 'palaces',
-    latitude: 26.9239,
-    longitude: 75.8267,
-  },
-];
+/**
+ * Primary category per monument. A monument belongs to several categories, but
+ * it needs one marker colour; pick the first matching non-nature tag.
+ */
+function primaryMapCategory(monument: Monument): Exclude<MapCategoryId, 'all'> {
+  const preferred = monument.categories.find((id) => id !== 'unesco');
+  if (preferred) {
+    return preferred;
+  }
+  if (monument.isUnesco) {
+    return 'unesco';
+  }
+  return 'forts';
+}
+
+export const mapPins: MapPin[] = allMonuments.map((monument, index) => ({
+  id: monument.id,
+  monumentId: monument.id,
+  name: monument.name,
+  category: primaryMapCategory(monument),
+  latitude: monument.lat,
+  longitude: monument.lng,
+  isPrimary: index === 0,
+  image: monument.image,
+  ticketPrice: monument.ticketPrice,
+  isUnesco: Boolean(monument.isUnesco),
+  rating: monument.rating,
+  city: monument.city,
+  state: monument.state,
+}));
 
 export type MapPreview = {
   monumentId: string;
@@ -107,29 +114,30 @@ export type MapPreview = {
   isUnesco: boolean;
 };
 
-export const mapPreviewByMonument: Record<string, MapPreview> = {
-  'amber-fort': {
-    monumentId: 'amber-fort',
-    name: 'Amber Fort & Palace',
-    location: 'Amer, Jaipur',
-    distanceLabel: '11 km away',
-    priceLabel: '₹100 Entry',
-    image:
-      'https://lh3.googleusercontent.com/aida/ALJJyrAsF40ZXN-v1Vulvw4aG7ozy4xUh0rqhqOFMW886NrUB8-GWJf9jZwEkv-Ajh0PFbQ7zXhxjaw-voWbJKcWJhvVjUH2pm-0EJyjpfM4c-BjVlBoHgYLLJ4bOMmDh1o26k26rnK3ivgSB-o-HPB_KbnJmvzvkGLTViG3L4XzwDRBau4qjDos9RrEdaX7Hb2dEKKcUCx4oTJfCvDBML9UVR_WGyPIUmgC1M2VwfiYFzF7iDrtg1HjyZDRlg',
-    rating: 4.9,
-    isUnesco: true,
-  },
-  'hawa-mahal': {
-    monumentId: 'hawa-mahal',
-    name: 'Hawa Mahal',
-    location: 'Pink City, Jaipur',
-    distanceLabel: '2.4 km away',
-    priceLabel: '₹50 Entry',
-    image:
-      'https://lh3.googleusercontent.com/aida/ALJJyrDxvgaELk8cAG6h3gEOg1Py7XM4-zXzJgCcnoYXcvP8lCbqltYbdugh3kT1S3SVA48h6J7Ojqs3Umg95lmzYybNJVG5nUt9pAoQD27UN7i2JB7XmpuLLX9N79LUhardPJ7fWeAu5O_j_qRvNlKjEJR-xZbNWkwQIb3q_pBs1uu-nBOHpe6wc3qJUYx-L_OmZGenrJ5hIV74NN4coiRSIL0XL0126-YktNBhoWpoMF8BeYML',
-    rating: 4.7,
-    isUnesco: false,
-  },
-};
+export function previewFromMonument(monument: Monument): MapPreview {
+  return {
+    monumentId: monument.id,
+    name: monument.name,
+    location: `${monument.city}, ${monument.state}`,
+    distanceLabel:
+      monument.distanceKm !== undefined
+        ? `${monument.distanceKm} km away`
+        : monument.state,
+    priceLabel:
+      monument.ticketPrice > 0
+        ? `₹${monument.ticketPrice} Entry`
+        : 'Free Entry',
+    image: monument.image,
+    rating: monument.rating,
+    isUnesco: Boolean(monument.isUnesco),
+  };
+}
 
-export const defaultPreview = mapPreviewByMonument['amber-fort'];
+export const mapPreviewByMonument: Record<string, MapPreview> =
+  Object.fromEntries(
+    allMonuments.map((monument) => [monument.id, previewFromMonument(monument)]),
+  );
+
+export const defaultPreview: MapPreview = previewFromMonument(
+  allMonuments.find((monument) => monument.id === 'amber-fort') ?? allMonuments[0],
+);

@@ -10,18 +10,45 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { CategoryChip } from '@/components/CategoryChip';
+import { EmptyState } from '@/components/EmptyState';
 import { ExploreCard } from '@/components/ExploreCard';
-import { FilterChip } from '@/components/FilterChip';
 import { SearchBar } from '@/components/SearchBar';
-import { exploreFilters, exploreMonuments } from '@/data/monuments';
+import {
+  CategoryId,
+  filterMonuments,
+  homeCategories,
+  monumentStates,
+} from '@/data/monuments';
 import { useTheme } from '@/theme/ThemeProvider';
 
 export default function ExploreScreen() {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const router = useRouter();
-  const [search, setSearch] = useState('Forts & Temples');
-  const [activeFilter, setActiveFilter] = useState('state');
+  const [search, setSearch] = useState('');
+  const [activeCategory, setActiveCategory] = useState<CategoryId | null>(null);
+  const [activeState, setActiveState] = useState<string | null>(null);
+
+  // One filtered list drives the chips, the state filter and the search box.
+  const results = useMemo(
+    () =>
+      filterMonuments({
+        categoryId: activeCategory ?? undefined,
+        state: activeState,
+        search,
+      }),
+    [activeCategory, activeState, search],
+  );
+
+  const hasFilters =
+    activeCategory !== null || activeState !== null || search.trim().length > 0;
+
+  const reset = () => {
+    setActiveCategory(null);
+    setActiveState(null);
+    setSearch('');
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -75,18 +102,25 @@ export default function ExploreScreen() {
               <SearchBar
                 value={search}
                 onChangeText={setSearch}
-                onClear={() => setSearch('')}
+                onClear={search.length > 0 ? () => setSearch('') : undefined}
                 showMic={false}
                 compact
-                placeholder="Search by state, dynasty, name..."
+                placeholder="Search by name, state, dynasty..."
                 accessibilityLabel="Search destinations"
               />
             </View>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Open filter settings"
+              accessibilityLabel="Toggle state filter"
+              accessibilityState={{ selected: activeState !== null }}
+              onPress={() =>
+                setActiveState((current) =>
+                  current === null ? (monumentStates[0] ?? null) : null,
+                )
+              }
               style={({ pressed }) => [
                 styles.filterButton,
+                activeState !== null && styles.filterButtonActive,
                 pressed && { opacity: 0.9 },
               ]}
             >
@@ -107,16 +141,62 @@ export default function ExploreScreen() {
               paddingRight: theme.spacing.page,
             }}
           >
-            {exploreFilters.map((filter) => (
-              <FilterChip
-                key={filter.id}
-                label={filter.label}
-                icon={filter.icon}
-                iconTone={filter.iconTone}
-                showChevron={filter.showChevron}
-                active={activeFilter === filter.id}
-                onPress={() => setActiveFilter(filter.id)}
+            {homeCategories.map((category) => (
+              <CategoryChip
+                key={category.id}
+                label={category.label}
+                icon={category.icon}
+                tone={category.tone}
+                active={activeCategory === category.id}
+                onPress={() =>
+                  setActiveCategory((current) =>
+                    current === category.id ? null : category.id,
+                  )
+                }
               />
+            ))}
+          </ScrollView>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{
+              gap: theme.spacing.sm,
+              paddingTop: theme.spacing.xs,
+              paddingRight: theme.spacing.page,
+            }}
+          >
+            {monumentStates.map((state) => (
+              <Pressable
+                key={state}
+                accessibilityRole="button"
+                accessibilityState={{ selected: activeState === state }}
+                accessibilityLabel={`Filter by ${state}`}
+                onPress={() =>
+                  setActiveState((current) =>
+                    current === state ? null : state,
+                  )
+                }
+                style={({ pressed }) => [
+                  styles.stateChip,
+                  activeState === state && styles.stateChipActive,
+                  pressed && { opacity: 0.85 },
+                ]}
+              >
+                <Text
+                  style={[
+                    theme.typography.labelSm,
+                    {
+                      color:
+                        activeState === state
+                          ? theme.colors.onSecondary
+                          : theme.colors.onSurface,
+                    },
+                  ]}
+                >
+                  {state}
+                </Text>
+              </Pressable>
             ))}
           </ScrollView>
         </View>
@@ -143,42 +223,64 @@ export default function ExploreScreen() {
                 { color: theme.colors.secondary },
               ]}
             >
-              24 heritage places
+              {results.length} heritage places
             </Text>{' '}
             found
           </Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Sort heritage places"
-            hitSlop={8}
-            style={({ pressed }) => [
-              styles.sortControl,
-              pressed && { opacity: 0.7 },
-            ]}
-          >
-            <Text
-              style={[
-                theme.typography.labelMdStrong,
-                { color: theme.colors.primary },
+          {hasFilters ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Clear all filters"
+              onPress={reset}
+              hitSlop={8}
+            >
+              <Text
+                style={[
+                  theme.typography.labelMdStrong,
+                  { color: theme.colors.primary },
+                ]}
+              >
+                Clear all
+              </Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Sort heritage places"
+              hitSlop={8}
+              style={({ pressed }) => [
+                styles.sortControl,
+                pressed && { opacity: 0.7 },
               ]}
             >
-              Sort: Recommended
-            </Text>
-            <MaterialIcons
-              name="swap-vert"
-              size={14}
-              color={theme.colors.primary}
-            />
-          </Pressable>
+              <Text
+                style={[
+                  theme.typography.labelMdStrong,
+                  { color: theme.colors.primary },
+                ]}
+              >
+                Sort: Recommended
+              </Text>
+              <MaterialIcons
+                name="swap-vert"
+                size={14}
+                color={theme.colors.primary}
+              />
+            </Pressable>
+          )}
         </View>
 
-        {exploreMonuments.map((monument) => (
-          <ExploreCard
-            key={monument.id}
-            monument={monument}
-            onPress={() => router.push(`/monument/${monument.id}`)}
-          />
-        ))}
+        {results.length === 0 ? (
+          <EmptyState onAction={reset} />
+        ) : (
+          results.map((monument) => (
+            <ExploreCard
+              key={monument.id}
+              monument={monument}
+              onPress={() => router.push(`/monument/${monument.id}`)}
+            />
+          ))
+        )}
       </ScrollView>
     </View>
   );
@@ -190,7 +292,7 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
       paddingHorizontal: theme.spacing.page,
       paddingTop: theme.spacing.md,
       paddingBottom: theme.spacing.md,
-      gap: theme.spacing.md,
+      gap: theme.spacing.sm,
       borderBottomWidth: 1,
       borderBottomColor: `${theme.colors.outlineVariant}4D`,
     },
@@ -220,6 +322,21 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
       justifyContent: 'center',
       backgroundColor: theme.colors.primary,
       ...theme.shadows.warmSoft,
+    },
+    filterButtonActive: {
+      backgroundColor: theme.colors.secondary,
+    },
+    stateChip: {
+      paddingHorizontal: theme.spacing.md,
+      paddingVertical: 6,
+      borderRadius: theme.radii.chip,
+      backgroundColor: theme.colors.surfaceContainer,
+      borderWidth: 1,
+      borderColor: `${theme.colors.outlineVariant}80`,
+    },
+    stateChipActive: {
+      backgroundColor: theme.colors.secondary,
+      borderColor: theme.colors.secondary,
     },
     resultsHeader: {
       flexDirection: 'row',
