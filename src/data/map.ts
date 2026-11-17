@@ -22,12 +22,12 @@ export type MapCategory = {
   icon: 'explore' | 'castle' | 'temple-hindu' | 'account-balance' | 'verified' | 'museum' | 'forest';
 };
 
-/** Default camera when no search target is active. */
+/** Default camera showing the whole country so every pin is visible. */
 export const mapInitialRegion = {
-  latitude: 26.9751,
-  longitude: 75.8244,
-  latitudeDelta: 0.12,
-  longitudeDelta: 0.12,
+  latitude: 22.5,
+  longitude: 79.0,
+  latitudeDelta: 20,
+  longitudeDelta: 20,
 };
 
 export const mapSearchPlaceholder = 'Search monuments, cities, or landmarks';

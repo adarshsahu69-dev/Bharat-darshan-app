@@ -7,7 +7,11 @@ import {
   Text,
   View,
 } from 'react-native';
-import MapView, { Marker, PROVIDER_DEFAULT } from 'react-native-maps';
+import MapView, {
+  Marker,
+  PROVIDER_DEFAULT,
+  UrlTile,
+} from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MapCategoryChips } from '@/components/MapCategoryChips';
@@ -79,9 +83,7 @@ export function NativeMapCanvas({
   };
 
   const openPreview = () => {
-    if (preview.monumentId === 'amber-fort') {
-      router.push(`/monument/${preview.monumentId}`);
-    }
+    router.push(`/monument/${preview.monumentId}`);
   };
 
   return (
@@ -94,8 +96,21 @@ export function NativeMapCanvas({
         showsUserLocation
         showsMyLocationButton={false}
         toolbarEnabled={false}
-        mapType="standard"
+        mapType="none"
+        onMapReady={() => {
+          // eslint-disable-next-line no-console
+          console.log('[map] onMapReady');
+        }}
       >
+        {/* OpenStreetMap raster tiles. Needs no API key and works even when the
+            platform's default provider cannot initialise (e.g. Android without a
+            Google Maps key), so the map is never left blank. */}
+        <UrlTile
+          urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          zIndex={-1}
+          maximumNativeZ={19}
+        />
+
         {pins.map((pin) => {
           const selected = pin.id === selectedPinId;
           return (
@@ -140,6 +155,8 @@ export function NativeMapCanvas({
           );
         })}
       </MapView>
+
+      <Text style={styles.attribution}>© OpenStreetMap contributors</Text>
 
       <View
         style={[
@@ -324,6 +341,17 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
       position: 'absolute',
       left: 0,
       right: 0,
+    },
+    attribution: {
+      position: 'absolute',
+      left: 8,
+      bottom: 4,
+      fontSize: 9,
+      color: theme.colors.onSurface,
+      backgroundColor: `${theme.colors.surface}CC`,
+      paddingHorizontal: 4,
+      paddingVertical: 1,
+      borderRadius: 3,
     },
   });
 }
