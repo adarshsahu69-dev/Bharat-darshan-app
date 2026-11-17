@@ -1,0 +1,428 @@
+<!DOCTYPE html><html lang="en" class="h-full"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bharat Darshan - Trip Planner</title>
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script id="tailwind-config">/** @type {import('tailwindcss').Config} */
+globalThis.tailwind = globalThis.tailwind || {};
+globalThis.tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      colors: {
+        'gold': '#D4A017',
+        'gold-container': '#FDF5DE',
+        'on-gold': '#382800',
+        'light-primary': '#B34A12',
+        'light-on-primary': '#FFFFFF',
+        'light-primary-container': '#FFDBCE',
+        'light-on-primary-container': '#3B1000',
+        'light-secondary': '#1F2A5C',
+        'light-on-secondary': '#FFFFFF',
+        'light-secondary-container': '#DFE0FF',
+        'light-on-secondary-container': '#061343',
+        'light-surface': '#FBF4E9',
+        'light-on-surface': '#211A15',
+        'light-surface-variant': '#EFE5D6',
+        'light-on-surface-variant': '#51443B',
+        'light-surface-container-low': '#F5EDE0',
+        'light-surface-container': '#EFE7D8',
+        'light-surface-container-high': '#E9DFCE',
+        'light-outline': '#857367',
+        'light-outline-variant': '#D6C7B7',
+        'dark-primary': '#FFB596',
+        'dark-on-primary': '#5F2200',
+        'dark-primary-container': '#8A3300',
+        'dark-on-primary-container': '#FFDBCE',
+        'dark-secondary': '#BAC3FF',
+        'dark-on-secondary': '#232F61',
+        'dark-secondary-container': '#3A4578',
+        'dark-on-secondary-container': '#DFE0FF',
+        'dark-surface': '#1A1410',
+        'dark-on-surface': '#ECE0D7',
+        'dark-surface-variant': '#51443B',
+        'dark-on-surface-variant': '#D6C7B7',
+        'dark-surface-container-low': '#231B15',
+        'dark-surface-container': '#2B221B',
+        'dark-surface-container-high': '#362C24',
+        'dark-outline': '#9F8D80',
+        'dark-outline-variant': '#51443B',
+      },
+      borderRadius: {
+        'sm': '6px',
+        'DEFAULT': '12px',
+        'md': '16px',
+        'lg': '20px',
+        'xl': '28px',
+        'full': '9999px',
+      },
+      spacing: {
+        'gutter-xs': '4px',
+        'gutter-sm': '8px',
+        'gutter-md': '16px',
+        'gutter-lg': '24px',
+        'gutter-xl': '32px',
+        'section': '40px',
+        'page-margin': '16px',
+      },
+      fontFamily: {
+        'display': ['"Playfair Display"', 'sans-serif'],
+        'headline': ['"Playfair Display"', 'sans-serif'],
+        'title': ['"Inter"', 'sans-serif'],
+        'body': ['"Inter"', 'sans-serif'],
+        'label': ['"Inter"', 'sans-serif'],
+      },
+      fontSize: {
+        'display-lg': ['40px', { lineHeight: '48px', letterSpacing: '-0.5px', fontWeight: '700' }],
+        'display-lg-mobile': ['30px', { lineHeight: '38px', letterSpacing: '-0.25px', fontWeight: '700' }],
+        'headline-lg': ['34px', { lineHeight: '42px', letterSpacing: '-0.25px', fontWeight: '700' }],
+        'headline-lg-mobile': ['26px', { lineHeight: '34px', letterSpacing: '0px', fontWeight: '700' }],
+        'headline-md': ['22px', { lineHeight: '28px', fontWeight: '600' }],
+        'headline-sm': ['18px', { lineHeight: '24px', fontWeight: '600' }],
+        'title-lg': ['18px', { lineHeight: '24px', fontWeight: '600' }],
+        'title-md': ['15px', { lineHeight: '20px', fontWeight: '600' }],
+        'title-sm': ['13px', { lineHeight: '18px', fontWeight: '600' }],
+        'body-lg': ['16px', { lineHeight: '24px', fontWeight: '400' }],
+        'body-md': ['14px', { lineHeight: '20px', fontWeight: '400' }],
+        'body-sm': ['12px', { lineHeight: '16px', fontWeight: '400' }],
+        'label-lg': ['14px', { lineHeight: '20px', fontWeight: '600' }],
+        'label-md': ['12px', { lineHeight: '16px', fontWeight: '500' }],
+        'label-sm': ['11px', { lineHeight: '14px', letterSpacing: '0.5px', fontWeight: '600' }],
+      },
+      transitionDuration: {
+        'state-change': '150ms',
+        'surface-enter': '280ms',
+        'surface-exit': '180ms',
+      },
+      transitionDelay: {
+        'state-change': '0ms',
+        'surface-enter': '0ms',
+        'surface-exit': '0ms',
+      },
+      transitionTimingFunction: {
+        'state-change': 'cubic-bezier(0.4, 0, 0.2, 1)',
+        'surface-enter': 'cubic-bezier(0, 0, 0.2, 1)',
+        'surface-exit': 'cubic-bezier(0.4, 0, 1, 1)',
+      },
+    },
+  },
+};
+if (typeof module !== 'undefined') module.exports = globalThis.tailwind.config;
+</script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&amp;family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet">
+  <style>
+    .material-symbols-outlined, .material-symbols-rounded, .material-symbols-sharp, .material-icons {
+      display: inline-block; width: 1em; height: 1em; line-height: 1 !important; box-sizing: content-box; overflow: hidden; white-space: nowrap; direction: ltr; vertical-align: middle;
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+</head>
+<body class="bg-light-surface text-light-on-surface min-h-[884px] font-body antialiased flex flex-col justify-between selection:bg-light-primary-container selection:text-light-on-primary-container" data-stitch-vh="min-h-[884px]===min-h-screen">
+
+  <!-- Sticky Trip Header & Actions -->
+  <header class="sticky top-0 z-30 bg-light-surface/95 backdrop-blur-md px-4 pt-3 pb-3 border-b border-light-outline-variant/30 space-y-3">
+    <!-- Android Status Bar -->
+    <div class="flex items-center justify-between text-body-sm text-light-on-surface-variant font-medium">
+      <span class="tabular-nums">9:41</span>
+      <div class="flex items-center gap-1.5">
+        <span class="material-symbols-outlined text-sm">signal_cellular_4_bar</span>
+        <span class="material-symbols-outlined text-sm">wifi</span>
+        <span class="material-symbols-outlined text-sm">battery_full</span>
+      </div>
+    </div>
+
+    <!-- Navigation row with Share & Edit buttons -->
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <a href="../home/Home.html" class="w-10 h-10 rounded-full bg-light-surface-container flex items-center justify-center text-light-secondary hover:bg-light-primary-container">
+          <span class="material-symbols-outlined text-xl">arrow_back</span>
+        </a>
+        <div>
+          <span class="text-label-sm text-light-primary font-bold uppercase tracking-wider">Itinerary #BD-409</span>
+          <h1 class="font-headline text-headline-sm text-light-secondary font-bold leading-tight">Royal Rajasthan Circuit</h1>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1.5">
+        <!-- Share Trip Button -->
+        <button type="button" aria-label="Share trip" class="w-10 h-10 rounded-full bg-light-surface-container text-light-secondary flex items-center justify-center hover:bg-light-primary-container hover:text-light-primary transition-colors">
+          <span class="material-symbols-outlined text-xl">share</span>
+        </button>
+        <!-- Edit Trip Button -->
+        <button type="button" aria-label="Edit trip details" class="w-10 h-10 rounded-full bg-light-surface-container text-light-secondary flex items-center justify-center hover:bg-light-primary-container hover:text-light-primary transition-colors">
+          <span class="material-symbols-outlined text-xl">edit</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Trip Meta Banner (Dates, Destination & Traveler Count) -->
+    <div class="p-3 rounded-xl bg-light-secondary text-light-on-secondary flex items-center justify-between shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
+          <span class="material-symbols-outlined text-2xl text-amber-300">calendar_month</span>
+        </div>
+        <div>
+          <span class="text-label-sm text-amber-200 font-semibold block">Jaipur • Jodhpur • Udaipur</span>
+          <span class="font-headline text-title-lg font-bold text-white">18 Nov – 22 Nov 2026</span>
+        </div>
+      </div>
+      <span class="px-2.5 py-1 rounded-full bg-white/20 text-white font-label text-label-sm font-semibold">
+        5 Days
+      </span>
+    </div>
+  </header>
+
+  <!-- Scrollable Timeline & Budget Content -->
+  <main class="flex-1 overflow-y-auto px-4 py-4 pb-28 space-y-6">
+
+    <!-- Day Selector Horizontal Pills -->
+    <section>
+      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
+        <!-- Day 1 (Selected) -->
+        <button type="button" class="px-4 py-2 rounded-full bg-light-primary text-light-on-primary font-label text-label-md font-bold shadow-sm flex-shrink-0 flex items-center gap-1.5">
+          <span>Day 1</span>
+          <span class="text-label-sm opacity-90">• 18 Nov</span>
+        </button>
+        <!-- Day 2 -->
+        <button type="button" class="px-4 py-2 rounded-full bg-light-surface-container text-light-on-surface font-label text-label-md font-medium border border-light-outline-variant/40 hover:bg-light-surface-variant flex-shrink-0">
+          <span>Day 2</span>
+          <span class="text-label-sm text-light-outline">• 19 Nov</span>
+        </button>
+        <!-- Day 3 -->
+        <button type="button" class="px-4 py-2 rounded-full bg-light-surface-container text-light-on-surface font-label text-label-md font-medium border border-light-outline-variant/40 hover:bg-light-surface-variant flex-shrink-0">
+          <span>Day 3</span>
+          <span class="text-label-sm text-light-outline">• 20 Nov</span>
+        </button>
+        <!-- Day 4 -->
+        <button type="button" class="px-4 py-2 rounded-full bg-light-surface-container text-light-on-surface font-label text-label-md font-medium border border-light-outline-variant/40 hover:bg-light-surface-variant flex-shrink-0">
+          <span>Day 4</span>
+          <span class="text-label-sm text-light-outline">• 21 Nov</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Day 1 Itinerary Timeline -->
+    <section class="space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="font-headline text-headline-sm text-light-secondary font-bold">Day 1: Amber &amp; Walled City</h2>
+          <p class="text-body-sm text-light-on-surface-variant">3 heritage monuments • 18 km total travel</p>
+        </div>
+        <!-- Add Place Button for Day 1 -->
+        <button type="button" class="inline-flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-light-primary-container text-light-primary font-label text-label-sm font-bold hover:bg-light-primary hover:text-white transition-colors">
+          <span class="material-symbols-outlined text-sm">add</span>
+          <span>Add Place</span>
+        </button>
+      </div>
+
+      <!-- Timeline Container -->
+      <div class="relative pl-6 space-y-5 before:absolute before:left-2.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-light-outline-variant/60">
+
+        <!-- Stop 1: Amber Fort -->
+        <div class="relative">
+          <!-- Timeline Marker Node -->
+          <div class="absolute -left-6 top-1 w-5 h-5 rounded-full bg-light-primary border-4 border-light-surface ring-2 ring-light-primary/30 flex items-center justify-center"></div>
+
+          <!-- Stop Card -->
+          <article class="p-3.5 rounded-xl bg-light-surface-container-low border border-light-outline-variant/40 shadow-sm">
+            <div class="flex items-center justify-between text-body-sm text-light-primary font-semibold mb-1">
+              <span class="flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">schedule</span> 08:30 AM – 11:30 AM
+              </span>
+              <span class="px-2 py-0.5 rounded bg-gold-container text-on-gold text-label-sm font-bold">Stop 1</span>
+            </div>
+            
+            <div class="flex gap-3 mt-2">
+              <img src="https://lh3.googleusercontent.com/aida/ALJJyrAsF40ZXN-v1Vulvw4aG7ozy4xUh0rqhqOFMW886NrUB8-GWJf9jZwEkv-Ajh0PFbQ7zXhxjaw-voWbJKcWJhvVjUH2pm-0EJyjpfM4c-BjVlBoHgYLLJ4bOMmDh1o26k26rnK3ivgSB-o-HPB_KbnJmvzvkGLTViG3L4XzwDRBau4qjDos9RrEdaX7Hb2dEKKcUCx4oTJfCvDBML9UVR_WGyPIUmgC1M2VwfiYFzF7iDrtg1HjyZDRlg" alt="Amber Fort" class="w-20 h-20 rounded-lg object-cover flex-shrink-0">
+              <div class="flex-1 min-w-0">
+                <h3 class="font-headline text-title-md text-light-secondary font-bold truncate">Amber Fort &amp; Sheesh Mahal</h3>
+                <p class="text-body-sm text-light-on-surface-variant line-clamp-1 mt-0.5">Amer Hilltop • Guided walkthrough</p>
+                <div class="flex items-center justify-between mt-2 pt-1 border-t border-light-outline-variant/30 text-body-sm">
+                  <span class="text-light-secondary font-bold">Entry: ₹100</span>
+                  <a href="../place-details/PlaceDetails.html" class="text-light-primary font-semibold hover:underline">Details</a>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- Travel Transit Segment between Stop 1 and 2 -->
+        <div class="flex items-center gap-2 text-body-sm text-light-on-surface-variant py-0.5">
+          <span class="w-6 h-6 rounded-full bg-light-surface-container flex items-center justify-center text-light-primary flex-shrink-0">
+            <span class="material-symbols-outlined text-sm">directions_car</span>
+          </span>
+          <span class="font-medium text-light-secondary">25 mins travel (9.2 km) via Amer Rd</span>
+          <span class="text-light-outline">• Est. ₹150 Cab</span>
+        </div>
+
+        <!-- Stop 2: Hawa Mahal -->
+        <div class="relative">
+          <!-- Timeline Marker Node -->
+          <div class="absolute -left-6 top-1 w-5 h-5 rounded-full bg-light-secondary border-4 border-light-surface ring-2 ring-light-secondary/30"></div>
+
+          <!-- Stop Card -->
+          <article class="p-3.5 rounded-xl bg-light-surface-container-low border border-light-outline-variant/40 shadow-sm">
+            <div class="flex items-center justify-between text-body-sm text-light-secondary font-semibold mb-1">
+              <span class="flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">schedule</span> 12:15 PM – 01:45 PM
+              </span>
+              <span class="px-2 py-0.5 rounded bg-light-secondary/10 text-light-secondary text-label-sm font-bold">Stop 2</span>
+            </div>
+            
+            <div class="flex gap-3 mt-2">
+              <img src="https://lh3.googleusercontent.com/aida/ALJJyrDxvgaELk8cAG6h3gEOg1Py7XM4-zXzJgCcnoYXcvP8lCbqltYbdugh3kT1S3SVA48h6J7Ojqs3Umg95lmzYybNJVG5nUt9pAoQD27UN7i2JB7XmpuLLX9N79LUhardPJ7fWeAu5O_j_qRvNlKjEJR-xZbNWkwQIb3q_pBs1uu-nBOHpe6wc3qJUYx-L_OmZGenrJ5hIV74NN4coiRSIL0XL0126-YktNBhoWpoMF8BeYML" alt="Hawa Mahal" class="w-20 h-20 rounded-lg object-cover flex-shrink-0">
+              <div class="flex-1 min-w-0">
+                <h3 class="font-headline text-title-md text-light-secondary font-bold truncate">Hawa Mahal &amp; Jharokhas</h3>
+                <p class="text-body-sm text-light-on-surface-variant line-clamp-1 mt-0.5">Pink City • Architecture &amp; rooftop view</p>
+                <div class="flex items-center justify-between mt-2 pt-1 border-t border-light-outline-variant/30 text-body-sm">
+                  <span class="text-light-secondary font-bold">Entry: ₹50</span>
+                  <a href="../place-details/PlaceDetails.html" class="text-light-primary font-semibold hover:underline">Details</a>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <!-- Travel Transit Segment between Stop 2 and 3 -->
+        <div class="flex items-center gap-2 text-body-sm text-light-on-surface-variant py-0.5">
+          <span class="w-6 h-6 rounded-full bg-light-surface-container flex items-center justify-center text-light-primary flex-shrink-0">
+            <span class="material-symbols-outlined text-sm">directions_walk</span>
+          </span>
+          <span class="font-medium text-light-secondary">10 mins walk (700 m) to City Palace</span>
+        </div>
+
+        <!-- Stop 3: Nahargarh Fort Sunset -->
+        <div class="relative">
+          <!-- Timeline Marker Node -->
+          <div class="absolute -left-6 top-1 w-5 h-5 rounded-full bg-gold border-4 border-light-surface ring-2 ring-gold/40"></div>
+
+          <!-- Stop Card -->
+          <article class="p-3.5 rounded-xl bg-light-surface-container-low border border-light-outline-variant/40 shadow-sm">
+            <div class="flex items-center justify-between text-body-sm text-amber-800 font-semibold mb-1">
+              <span class="flex items-center gap-1">
+                <span class="material-symbols-outlined text-sm">schedule</span> 04:30 PM – 06:30 PM
+              </span>
+              <span class="px-2 py-0.5 rounded bg-gold-container text-on-gold text-label-sm font-bold">Sunset Stop</span>
+            </div>
+            
+            <div class="flex gap-3 mt-2">
+              <img src="https://lh3.googleusercontent.com/aida/ALJJyrAuCPVc8krc4DaJBLMqoN1r8jq9cwFN8j_LcPBn0T_AXCbfizFzQ_bp8ApiwgjN5qPipDCs8DoTY-0OpCYyQRofKgfoNP7fLJJ1s-6rd6nWLh0XfHH0OkRxIG-crr-yzQwqYrwfu-srV2I7Kfg5fqy4r-OH1pc-FjlDIUV_o7TlfLL_Jq8ck6bqEqx9q4zjNTvIQRQIbL08icQ7lBVSgsbd5Swssq0nDqj3OOyKWSCo48pxTjmRVWmuKg" alt="Nahargarh Sunset" class="w-20 h-20 rounded-lg object-cover flex-shrink-0">
+              <div class="flex-1 min-w-0">
+                <h3 class="font-headline text-title-md text-light-secondary font-bold truncate">Nahargarh Fort &amp; Padao</h3>
+                <p class="text-body-sm text-light-on-surface-variant line-clamp-1 mt-0.5">Panoramic sunset view of entire Jaipur city</p>
+                <div class="flex items-center justify-between mt-2 pt-1 border-t border-light-outline-variant/30 text-body-sm">
+                  <span class="text-light-secondary font-bold">Entry: ₹50</span>
+                  <a href="../place-details/PlaceDetails.html" class="text-light-primary font-semibold hover:underline">Details</a>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Estimated Budget Summary in ₹ -->
+    <section class="p-4 rounded-xl bg-light-surface-container border border-light-outline-variant/40 shadow-sm space-y-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="text-label-sm text-light-primary font-bold uppercase tracking-wider">Financial Overview</span>
+          <h2 class="font-headline text-headline-sm text-light-secondary font-bold">Estimated Budget Summary</h2>
+        </div>
+        <span class="text-headline-sm font-bold text-light-primary">₹8,450</span>
+      </div>
+
+      <!-- Breakdown rows -->
+      <div class="space-y-2 text-body-sm pt-2 border-t border-light-outline-variant/40">
+        <div class="flex items-center justify-between">
+          <span class="text-light-on-surface-variant flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-base text-light-primary">confirmation_number</span>
+            Monument Entry Tickets (8 sites)
+          </span>
+          <span class="font-semibold text-light-secondary tabular-nums">₹1,250</span>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-light-on-surface-variant flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-base text-light-primary">record_voice_over</span>
+            Audio Guides &amp; Heritage Historian
+          </span>
+          <span class="font-semibold text-light-secondary tabular-nums">₹1,200</span>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-light-on-surface-variant flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-base text-light-primary">local_taxi</span>
+            Local Transport (Cabs &amp; E-Rickshaws)
+          </span>
+          <span class="font-semibold text-light-secondary tabular-nums">₹2,800</span>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <span class="text-light-on-surface-variant flex items-center gap-1.5">
+            <span class="material-symbols-outlined text-base text-light-primary">restaurant</span>
+            Traditional Rajasthani Thali &amp; Snacks
+          </span>
+          <span class="font-semibold text-light-secondary tabular-nums">₹3,200</span>
+        </div>
+      </div>
+
+      <!-- Trust & Booking Note -->
+      <div class="flex items-center gap-2 pt-2 text-label-sm text-light-outline">
+        <span class="material-symbols-outlined text-base text-emerald-700">shield</span>
+        <span>ASI (Archaeological Survey of India) verified tariff rates</span>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Navigation Bar (Trips Tab Active) -->
+  <nav class="fixed bottom-0 left-0 right-0 z-40 bg-light-surface border-t border-light-outline-variant/40 shadow-lg px-2 py-1.5">
+    <div class="grid grid-cols-5 items-center justify-items-center max-w-md mx-auto">
+      <!-- Home Tab -->
+      <a href="../home/Home.html" class="flex flex-col items-center gap-0.5 py-1 px-3 text-light-on-surface-variant hover:text-light-primary transition-colors">
+        <div class="w-14 h-7 rounded-full flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">home</span>
+        </div>
+        <span class="font-label text-label-sm font-medium tracking-tight">Home</span>
+      </a>
+
+      <!-- Explore Tab -->
+      <a href="../explore/Explore.html" class="flex flex-col items-center gap-0.5 py-1 px-3 text-light-on-surface-variant hover:text-light-primary transition-colors">
+        <div class="w-14 h-7 rounded-full flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">explore</span>
+        </div>
+        <span class="font-label text-label-sm font-medium tracking-tight">Explore</span>
+      </a>
+
+      <!-- Map Tab -->
+      <a href="../heritage-map/HeritageMap.html" class="flex flex-col items-center gap-0.5 py-1 px-3 text-light-on-surface-variant hover:text-light-primary transition-colors">
+        <div class="w-14 h-7 rounded-full flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">map</span>
+        </div>
+        <span class="font-label text-label-sm font-medium tracking-tight">Map</span>
+      </a>
+
+      <!-- Trips Tab (Active) -->
+      <a href="../trip-planner/TripPlanner.html" class="flex flex-col items-center gap-0.5 py-1 px-3 text-light-primary transition-colors">
+        <div class="w-14 h-7 rounded-full bg-light-primary-container flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl text-light-on-primary-container" style="font-variation-settings: &#39;FILL&#39; 1;">luggage</span>
+        </div>
+        <span class="font-label text-label-sm font-bold tracking-tight">Trips</span>
+      </a>
+
+      <!-- Profile Tab -->
+      <a href="#" class="flex flex-col items-center gap-0.5 py-1 px-3 text-light-on-surface-variant hover:text-light-primary transition-colors">
+        <div class="w-14 h-7 rounded-full flex items-center justify-center">
+          <span class="material-symbols-outlined text-xl">person</span>
+        </div>
+        <span class="font-label text-label-sm font-medium tracking-tight">Profile</span>
+      </a>
+    </div>
+  </nav>
+
+
+
+</body></html>
