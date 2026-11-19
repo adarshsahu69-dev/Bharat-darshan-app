@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Linking,
   Pressable,
   ScrollView,
@@ -15,7 +16,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AddToTripSheet } from '@/components/AddToTripSheet';
 import { SafeImage } from '@/components/SafeImage';
-import { getMonument, getMonumentDetail, Monument } from '@/data/monuments';
+import { getMonumentDetail, Monument } from '@/data/monuments';
+import { useMonument } from '@/data/useMonuments';
 import { useTheme } from '@/theme/ThemeProvider';
 
 export default function MonumentDetailScreen() {
@@ -26,48 +28,85 @@ export default function MonumentDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
-  const monument = getMonument(monumentId);
+  // React Query fetches the monument from Supabase. Rich detail content
+  // (highlights, audio tour, reviews) comes from the seed file as a fallback
+  // because those fields are not in the database schema.
+  const { data: monument, isPending, isError, error, refetch } =
+    useMonument(monumentId);
   const detail = getMonumentDetail(monumentId);
 
-  const [saved, setSaved] = useState(
-    monument ? (monument.initiallySaved ?? false) : false,
-  );
+  const [saved, setSaved] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
 
-  if (!monument) {
+  if (isPending) {
     return (
-      <View style={styles.missing}>
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
+
+  if (isError || !monument) {
+    return (
+      <View style={styles.centered}>
         <Text
           style={[
             theme.typography.headlineSm,
-            { color: theme.colors.secondary },
+            { color: theme.colors.secondary, textAlign: 'center' },
           ]}
         >
-          Monument not found
+          {isError ? 'Could not load monument' : 'Monument not found'}
         </Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
-          onPress={() => router.back()}
-          style={({ pressed }) => [
-            styles.primaryButton,
-            pressed && { opacity: 0.9 },
+        <Text
+          style={[
+            theme.typography.bodyMd,
+            {
+              color: theme.colors.onSurfaceVariant,
+              textAlign: 'center',
+              marginTop: theme.spacing.xs,
+            },
           ]}
         >
-          <MaterialIcons
-            name="arrow-back"
-            size={18}
-            color={theme.colors.onPrimary}
-          />
-          <Text
-            style={[
-              theme.typography.labelMd,
-              { color: theme.colors.onPrimary },
+          {(error as Error)?.message ?? 'Please try again.'}
+        </Text>
+        <View style={styles.errorActions}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Retry"
+            onPress={() => refetch()}
+            style={({ pressed }) => [
+              styles.primaryButton,
+              pressed && { opacity: 0.9 },
             ]}
           >
-            Back to Explore
-          </Text>
-        </Pressable>
+            <Text
+              style={[
+                theme.typography.labelMd,
+                { color: theme.colors.onPrimary },
+              ]}
+            >
+              Retry
+            </Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            onPress={() => router.back()}
+            style={({ pressed }) => [
+              styles.secondaryButton,
+              pressed && { opacity: 0.9 },
+            ]}
+          >
+            <Text
+              style={[
+                theme.typography.labelMd,
+                { color: theme.colors.secondary },
+              ]}
+            >
+              Back
+            </Text>
+          </Pressable>
+        </View>
       </View>
     );
   }
@@ -957,6 +996,29 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
       gap: theme.spacing.lg,
       padding: theme.spacing.page,
     },
+    centered: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: theme.spacing.md,
+      padding: theme.spacing.page,
+      backgroundColor: theme.colors.background,
+    },
+    errorActions: {
+      flexDirection: 'row',
+      gap: theme.spacing.md,
+      marginTop: theme.spacing.sm,
+    },
+    secondaryButton: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: theme.spacing.lg,
+      paddingVertical: theme.spacing.md,
+      borderRadius: theme.radii.chip,
+      backgroundColor: theme.colors.surfaceContainer,
+      minHeight: 44,
+    },
     primaryButton: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -965,6 +1027,7 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
       paddingVertical: theme.spacing.md,
       borderRadius: theme.radii.chip,
       backgroundColor: theme.colors.primary,
+      minHeight: 44,
     },
   });
 }
