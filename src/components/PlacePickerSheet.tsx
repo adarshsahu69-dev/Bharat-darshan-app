@@ -5,7 +5,11 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { BottomSheet } from '@/components/BottomSheet';
 import { SafeImage } from '@/components/SafeImage';
 import { SearchBar } from '@/components/SearchBar';
-import { filterMonuments } from '@/data/monuments';
+import {
+  filterMonumentList,
+  useIsOfflineFallback,
+  useMonuments,
+} from '@/data/useMonuments';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useTripStore } from '@/store/tripStore';
 
@@ -24,11 +28,17 @@ export function PlacePickerSheet({ visible, dayId, onClose }: Props) {
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [search, setSearch] = useState('');
 
+  const { data: monuments, isPending, isError, refetch } = useMonuments();
+  const { isFallback } = useIsOfflineFallback();
+
   const days = useTripStore((state) => state.trip.days);
   const addStopToDay = useTripStore((state) => state.addStopToDay);
 
   const day = days.find((item) => item.id === dayId);
-  const results = useMemo(() => filterMonuments({ search }), [search]);
+  const results = useMemo(
+    () => filterMonumentList(monuments ?? [], { search }),
+    [monuments, search],
+  );
   const existingIds = useMemo(
     () => new Set((day?.stops ?? []).map((stop) => stop.monumentId)),
     [day],
@@ -41,6 +51,24 @@ export function PlacePickerSheet({ visible, dayId, onClose }: Props) {
       title="Add a place"
       subtitle={day ? `Adding to ${day.title}` : 'Choose a day first'}
     >
+      {isFallback ? (
+        <View style={styles.fallbackBanner}>
+          <MaterialIcons
+            name="cloud-off"
+            size={14}
+            color={theme.colors.onSurfaceVariant}
+          />
+          <Text
+            style={[
+              theme.typography.labelSm,
+              { color: theme.colors.onSurfaceVariant },
+            ]}
+          >
+            Showing saved data — Supabase is unreachable.
+          </Text>
+        </View>
+      ) : null}
+
       <SearchBar
         value={search}
         onChangeText={setSearch}
@@ -50,7 +78,57 @@ export function PlacePickerSheet({ visible, dayId, onClose }: Props) {
         accessibilityLabel="Search places to add"
       />
 
-      {results.length === 0 ? (
+      {isPending ? (
+        <View style={styles.centered}>
+          <MaterialIcons
+            name="search"
+            size={28}
+            color={theme.colors.outline}
+          />
+          <Text
+            style={[
+              theme.typography.bodySm,
+              { color: theme.colors.onSurfaceVariant, marginTop: theme.spacing.sm },
+            ]}
+          >
+            Loading places…
+          </Text>
+        </View>
+      ) : isError ? (
+        <View style={styles.centered}>
+          <MaterialIcons
+            name="search-off"
+            size={28}
+            color={theme.colors.outline}
+          />
+          <Text
+            style={[
+              theme.typography.bodySm,
+              { color: theme.colors.onSurfaceVariant, marginTop: theme.spacing.sm },
+            ]}
+          >
+            Could not load places.
+          </Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Retry loading places"
+            onPress={() => refetch()}
+            style={({ pressed }) => [
+              styles.retryButton,
+              pressed && { opacity: 0.85 },
+            ]}
+          >
+            <Text
+              style={[
+                theme.typography.labelMd,
+                { color: theme.colors.onPrimary },
+              ]}
+            >
+              Retry
+            </Text>
+          </Pressable>
+        </View>
+      ) : results.length === 0 ? (
         <View style={styles.empty}>
           <MaterialIcons
             name="search-off"
@@ -152,10 +230,35 @@ export function PlacePickerSheet({ visible, dayId, onClose }: Props) {
 
 function makeStyles(theme: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
+    fallbackBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      paddingHorizontal: theme.spacing.page,
+      paddingVertical: theme.spacing.xs,
+      backgroundColor: theme.colors.surfaceContainerHigh,
+      borderWidth: 1,
+      borderColor: `${theme.colors.outlineVariant}80`,
+    },
     empty: {
       alignItems: 'center',
       paddingVertical: theme.spacing.xxl,
       paddingHorizontal: theme.spacing.page,
+    },
+    centered: {
+      alignItems: 'center',
+      gap: theme.spacing.sm,
+      paddingVertical: theme.spacing.xxl,
+      paddingHorizontal: theme.spacing.page,
+    },
+    retryButton: {
+      paddingHorizontal: theme.spacing.lg,
+      paddingVertical: theme.spacing.sm,
+      borderRadius: theme.radii.chip,
+      backgroundColor: theme.colors.primary,
+      minHeight: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     list: {
       gap: theme.spacing.sm,

@@ -7,8 +7,12 @@ import {
   fetchMonuments,
   monumentKeys,
   toMonument,
-} from '@/data/monumentRepo';
-import { Monument, filterMonumentList } from '@/data/monuments';
+} from '@/data/monumentsApi';
+import {
+  allMonuments,
+  filterMonumentList,
+  Monument,
+} from '@/data/monuments';
 
 /**
  * All monuments, cached by React Query.
@@ -23,6 +27,9 @@ export function useMonuments() {
       const rows = await fetchMonuments();
       return rows.map(toMonument) as Monument[];
     },
+    // When the network request fails we fall back to the local seed data so
+    // the app still shows something useful instead of an error screen.
+    placeholderData: allMonuments,
   });
 }
 
@@ -49,7 +56,23 @@ export function useMonument(id: string) {
       }
       return list.find((m) => m.id === id);
     },
+    // Seed fallback so a failed detail fetch still renders a real monument.
+    placeholderData: allMonuments.find((m) => m.id === id),
   });
+}
+
+/**
+ * Whether the currently shown data is the offline fallback rather than a fresh
+ * Supabase fetch. Used to show a small "Showing saved data" label.
+ */
+export function useIsOfflineFallback() {
+  const { isPending, isError, data } = useMonuments();
+  return useMemo(
+    () => ({
+      isFallback: !isPending && isError && (data ?? []).length > 0,
+    }),
+    [isPending, isError, data],
+  );
 }
 
 export { filterMonumentList, Monument };

@@ -31,6 +31,17 @@ Configure environment variables in `.env`:
 - `EXPO_PUBLIC_SUPABASE_ANON_KEY` — your Supabase anon/public key (**anon key only**; never bundle the `service_role` key)
 - `EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY` — Google Maps key for Android (see below)
 
+#### Where to find the Supabase credentials
+
+1. Open the **Supabase Dashboard** and select your project.
+2. Go to **Settings** (gear icon in the left sidebar) → **API**.
+3. **Project URL** — copy the `https://<project>.supabase.co` URL into `EXPO_PUBLIC_SUPABASE_URL`.
+4. **Anon (public) key** — copy the `anon` key from the *Project API keys* section into `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
+
+The `anon` key is safe to ship in the app: it is what the client uses for all
+requests. The `service_role` key is server-only and must never be committed or
+bundled — row-level security enforces that even the anon key cannot write.
+
 The app reads Supabase credentials from `EXPO_PUBLIC_SUPABASE_URL` and
 `EXPO_PUBLIC_SUPABASE_ANON_KEY` (exposed via `app.config.ts` extras) and creates
 the client in `src/lib/supabase.ts` using AsyncStorage-backed auth session
