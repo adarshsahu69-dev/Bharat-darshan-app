@@ -7,16 +7,18 @@ import { MapCategoryChips } from '@/components/MapCategoryChips';
 import { MapPreviewSheet } from '@/components/MapPreviewSheet';
 import { SearchBar } from '@/components/SearchBar';
 import {
-  defaultPreview,
-  mapCategories,
+  defaultPreview as seedDefaultPreview,
+  mapCategories as seedMapCategories,
+  MapCategory,
   MapCategoryId,
   MapPin,
-  mapPreviewByMonument,
+  MapPreview,
+  mapPreviewByMonument as seedPreviewByMonument,
 } from '@/data/map';
 import { useTheme } from '@/theme/ThemeProvider';
 
 type Props = {
-  categories: typeof mapCategories;
+  categories: MapCategory[];
   activeId: MapCategoryId;
   onSelect: (id: MapCategoryId) => void;
   pins: MapPin[];
@@ -24,6 +26,9 @@ type Props = {
   onSelectPin: (pin: MapPin) => void;
   saved: boolean;
   onToggleSave: () => void;
+  /** Preview lookup built from fetched data; falls back to seed data. */
+  previewByMonument?: Record<string, MapPreview>;
+  defaultPreview?: MapPreview | null;
 };
 
 /**
@@ -39,6 +44,8 @@ export function MapCanvas({
   onSelectPin,
   saved,
   onToggleSave,
+  previewByMonument,
+  defaultPreview,
 }: Props) {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -46,10 +53,14 @@ export function MapCanvas({
   const [query, setQuery] = useState('Amber Fort, Amer');
 
   const selectedPin = pins.find((pin) => pin.id === selectedPinId) ?? pins[0];
-  const preview = mapPreviewByMonument[selectedPin.monumentId] ?? defaultPreview;
+  const previews = previewByMonument ?? seedPreviewByMonument;
+  const fallbackPreview = defaultPreview ?? seedDefaultPreview;
+  const preview = selectedPin
+    ? (previews[selectedPin.monumentId] ?? fallbackPreview)
+    : fallbackPreview;
 
   const openPreview = () => {
-    if (preview.monumentId === 'amber-fort') {
+    if (preview) {
       router.push(`/monument/${preview.monumentId}`);
     }
   };
@@ -235,14 +246,16 @@ export function MapCanvas({
         </Pressable>
       </View>
 
-      <View style={styles.sheet}>
-        <MapPreviewSheet
-          preview={preview}
-          saved={saved}
-          onToggleSave={onToggleSave}
-          onViewDetails={openPreview}
-        />
-      </View>
+      {preview ? (
+        <View style={styles.sheet}>
+          <MapPreviewSheet
+            preview={preview}
+            saved={saved}
+            onToggleSave={onToggleSave}
+            onViewDetails={openPreview}
+          />
+        </View>
+      ) : null}
     </View>
   );
 }

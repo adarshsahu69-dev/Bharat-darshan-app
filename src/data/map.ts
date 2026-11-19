@@ -1,15 +1,11 @@
 /**
  * Heritage Map data.
  *
- * Pins are derived from the shared monument list so the map, Home and Explore
- * always agree. Category counts are computed from real data.
+ * Builders derive pins, category counts and previews from a monument list so the
+ * map stays in sync with Supabase-fetched data (or seed data as fallback).
  */
 
-import {
-  allMonuments,
-  CategoryId,
-  Monument,
-} from '@/data/monuments';
+import { allMonuments, CategoryId, Monument } from '@/data/monuments';
 
 export type MapCategoryId = 'all' | CategoryId;
 
@@ -19,7 +15,14 @@ export type MapCategory = {
   /** Short label shown on the chip. */
   chipLabel: string;
   count: number;
-  icon: 'explore' | 'castle' | 'temple-hindu' | 'account-balance' | 'verified' | 'museum' | 'forest';
+  icon:
+    | 'explore'
+    | 'castle'
+    | 'temple-hindu'
+    | 'account-balance'
+    | 'verified'
+    | 'museum'
+    | 'forest';
 };
 
 /** Default camera showing the whole country so every pin is visible. */
@@ -32,27 +35,72 @@ export const mapInitialRegion = {
 
 export const mapSearchPlaceholder = 'Search monuments, cities, or landmarks';
 
-const countIn = (id: MapCategoryId): number => {
+function countIn(monuments: Monument[], id: MapCategoryId): number {
   if (id === 'all') {
-    return allMonuments.length;
+    return monuments.length;
   }
   if (id === 'unesco') {
-    return allMonuments.filter((monument) => monument.isUnesco).length;
+    return monuments.filter((monument) => monument.isUnesco).length;
   }
-  return allMonuments.filter((monument) =>
+  return monuments.filter((monument) =>
     monument.categories.includes(id as CategoryId),
   ).length;
-};
+}
 
-export const mapCategories: MapCategory[] = [
-  { id: 'all', label: 'All Sites', chipLabel: 'All Sites', count: countIn('all'), icon: 'explore' },
-  { id: 'forts', label: 'Forts', chipLabel: 'Forts', count: countIn('forts'), icon: 'castle' },
-  { id: 'temples', label: 'Temples', chipLabel: 'Temples', count: countIn('temples'), icon: 'temple-hindu' },
-  { id: 'palaces', label: 'Palaces', chipLabel: 'Palaces', count: countIn('palaces'), icon: 'account-balance' },
-  { id: 'unesco', label: 'UNESCO', chipLabel: 'UNESCO', count: countIn('unesco'), icon: 'verified' },
-  { id: 'museums', label: 'Museums', chipLabel: 'Museums', count: countIn('museums'), icon: 'museum' },
-  { id: 'nature', label: 'Nature', chipLabel: 'Nature', count: countIn('nature'), icon: 'forest' },
-];
+/** Build category chips with counts derived from the given monument list. */
+export function buildMapCategories(monuments: Monument[]): MapCategory[] {
+  return [
+    {
+      id: 'all',
+      label: 'All Sites',
+      chipLabel: 'All Sites',
+      count: countIn(monuments, 'all'),
+      icon: 'explore',
+    },
+    {
+      id: 'forts',
+      label: 'Forts',
+      chipLabel: 'Forts',
+      count: countIn(monuments, 'forts'),
+      icon: 'castle',
+    },
+    {
+      id: 'temples',
+      label: 'Temples',
+      chipLabel: 'Temples',
+      count: countIn(monuments, 'temples'),
+      icon: 'temple-hindu',
+    },
+    {
+      id: 'palaces',
+      label: 'Palaces',
+      chipLabel: 'Palaces',
+      count: countIn(monuments, 'palaces'),
+      icon: 'account-balance',
+    },
+    {
+      id: 'unesco',
+      label: 'UNESCO',
+      chipLabel: 'UNESCO',
+      count: countIn(monuments, 'unesco'),
+      icon: 'verified',
+    },
+    {
+      id: 'museums',
+      label: 'Museums',
+      chipLabel: 'Museums',
+      count: countIn(monuments, 'museums'),
+      icon: 'museum',
+    },
+    {
+      id: 'nature',
+      label: 'Nature',
+      chipLabel: 'Nature',
+      count: countIn(monuments, 'nature'),
+      icon: 'forest',
+    },
+  ];
+}
 
 export type MapPin = {
   id: string;
@@ -74,7 +122,7 @@ export type MapPin = {
 
 /**
  * Primary category per monument. A monument belongs to several categories, but
- * it needs one marker colour; pick the first matching non-nature tag.
+ * it needs one marker colour; pick the first matching non-UNESCO tag.
  */
 function primaryMapCategory(monument: Monument): Exclude<MapCategoryId, 'all'> {
   const preferred = monument.categories.find((id) => id !== 'unesco');
@@ -87,21 +135,29 @@ function primaryMapCategory(monument: Monument): Exclude<MapCategoryId, 'all'> {
   return 'forts';
 }
 
-export const mapPins: MapPin[] = allMonuments.map((monument, index) => ({
-  id: monument.id,
-  monumentId: monument.id,
-  name: monument.name,
-  category: primaryMapCategory(monument),
-  latitude: monument.lat,
-  longitude: monument.lng,
-  isPrimary: index === 0,
-  image: monument.image,
-  ticketPrice: monument.ticketPrice,
-  isUnesco: Boolean(monument.isUnesco),
-  rating: monument.rating,
-  city: monument.city,
-  state: monument.state,
-}));
+/** Build map pins from the given monument list. */
+export function buildMapPins(monuments: Monument[]): MapPin[] {
+  return monuments
+    .filter(
+      (monument) =>
+        typeof monument.lat === 'number' && typeof monument.lng === 'number',
+    )
+    .map((monument, index) => ({
+      id: monument.id,
+      monumentId: monument.id,
+      name: monument.name,
+      category: primaryMapCategory(monument),
+      latitude: monument.lat,
+      longitude: monument.lng,
+      isPrimary: index === 0,
+      image: monument.image,
+      ticketPrice: monument.ticketPrice,
+      isUnesco: Boolean(monument.isUnesco),
+      rating: monument.rating,
+      city: monument.city,
+      state: monument.state,
+    }));
+}
 
 export type MapPreview = {
   monumentId: string;
@@ -133,11 +189,32 @@ export function previewFromMonument(monument: Monument): MapPreview {
   };
 }
 
-export const mapPreviewByMonument: Record<string, MapPreview> =
-  Object.fromEntries(
-    allMonuments.map((monument) => [monument.id, previewFromMonument(monument)]),
+/** Build a preview lookup and a sensible default from the given monuments. */
+export function buildMapPreviews(monuments: Monument[]): {
+  previewByMonument: Record<string, MapPreview>;
+  defaultPreview: MapPreview | null;
+} {
+  const previewByMonument = Object.fromEntries(
+    monuments.map((monument) => [monument.id, previewFromMonument(monument)]),
   );
+  const defaultMonument =
+    monuments.find((monument) => monument.id === 'amber-fort') ?? monuments[0];
+  return {
+    previewByMonument,
+    defaultPreview: defaultMonument
+      ? previewFromMonument(defaultMonument)
+      : null,
+  };
+}
 
-export const defaultPreview: MapPreview = previewFromMonument(
-  allMonuments.find((monument) => monument.id === 'amber-fort') ?? allMonuments[0],
-);
+// Seed-derived defaults kept for compatibility with static consumers.
+export const mapCategories: MapCategory[] = buildMapCategories(allMonuments);
+export const mapPins: MapPin[] = buildMapPins(allMonuments);
+export const { previewByMonument: mapPreviewByMonument, defaultPreview } = (() => {
+  const built = buildMapPreviews(allMonuments);
+  return {
+    previewByMonument: built.previewByMonument,
+    // Seed list is never empty, but satisfy the type for the exported constant.
+    defaultPreview: built.defaultPreview as MapPreview,
+  };
+})();

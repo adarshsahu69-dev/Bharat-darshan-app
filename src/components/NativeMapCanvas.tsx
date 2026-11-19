@@ -1,34 +1,26 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import MapView, {
-  Marker,
-  PROVIDER_DEFAULT,
-  UrlTile,
-} from 'react-native-maps';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
+import MapView, { Marker, PROVIDER_DEFAULT, UrlTile } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { MapCategoryChips } from '@/components/MapCategoryChips';
 import { MapPreviewSheet } from '@/components/MapPreviewSheet';
 import { SearchBar } from '@/components/SearchBar';
 import {
-  defaultPreview,
-  mapCategories,
+  defaultPreview as seedDefaultPreview,
   mapInitialRegion,
+  MapCategory,
   MapCategoryId,
   MapPin,
-  mapPreviewByMonument,
+  MapPreview,
+  mapPreviewByMonument as seedPreviewByMonument,
 } from '@/data/map';
 import { useTheme } from '@/theme/ThemeProvider';
 
 type Props = {
-  categories: typeof mapCategories;
+  categories: MapCategory[];
   activeCategory: MapCategoryId;
   onSelectCategory: (id: MapCategoryId) => void;
   pins: MapPin[];
@@ -36,6 +28,9 @@ type Props = {
   onSelectPin: (pin: MapPin) => void;
   saved: boolean;
   onToggleSave: () => void;
+  /** Preview lookup built from fetched data; falls back to seed data. */
+  previewByMonument?: Record<string, MapPreview>;
+  defaultPreview?: MapPreview | null;
 };
 
 /**
@@ -51,6 +46,8 @@ export function NativeMapCanvas({
   onSelectPin,
   saved,
   onToggleSave,
+  previewByMonument,
+  defaultPreview,
 }: Props) {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -60,7 +57,11 @@ export function NativeMapCanvas({
   const [query, setQuery] = useState('Amber Fort, Amer');
 
   const selectedPin = pins.find((pin) => pin.id === selectedPinId) ?? pins[0];
-  const preview = mapPreviewByMonument[selectedPin.monumentId] ?? defaultPreview;
+  const previews = previewByMonument ?? seedPreviewByMonument;
+  const fallbackPreview = defaultPreview ?? seedDefaultPreview;
+  const preview = selectedPin
+    ? (previews[selectedPin.monumentId] ?? fallbackPreview)
+    : fallbackPreview;
 
   const focusPin = (pin: MapPin) => {
     onSelectPin(pin);
@@ -77,13 +78,18 @@ export function NativeMapCanvas({
 
   const zoom = (direction: 1 | -1) => {
     mapRef.current?.getCamera().then((camera) => {
-      const nextZoom = Math.min(20, Math.max(2, (camera.zoom ?? 14) + direction));
+      const nextZoom = Math.min(
+        20,
+        Math.max(2, (camera.zoom ?? 14) + direction),
+      );
       mapRef.current?.animateCamera({ zoom: nextZoom }, { duration: 250 });
     });
   };
 
   const openPreview = () => {
-    router.push(`/monument/${preview.monumentId}`);
+    if (preview) {
+      router.push(`/monument/${preview.monumentId}`);
+    }
   };
 
   return (
@@ -197,14 +203,16 @@ export function NativeMapCanvas({
         <MapIconButton icon="remove" label="Zoom out" onPress={() => zoom(-1)} />
       </View>
 
-      <View style={[styles.bottomSheet, { bottom: insets.bottom + 76 }]}>
-        <MapPreviewSheet
-          preview={preview}
-          saved={saved}
-          onToggleSave={onToggleSave}
-          onViewDetails={openPreview}
-        />
-      </View>
+      {preview ? (
+        <View style={[styles.bottomSheet, { bottom: insets.bottom + 76 }]}>
+          <MapPreviewSheet
+            preview={preview}
+            saved={saved}
+            onToggleSave={onToggleSave}
+            onViewDetails={openPreview}
+          />
+        </View>
+      ) : null}
     </View>
   );
 }
