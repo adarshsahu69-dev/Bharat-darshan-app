@@ -2,6 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -14,12 +15,8 @@ import { CategoryChip } from '@/components/CategoryChip';
 import { EmptyState } from '@/components/EmptyState';
 import { ExploreCard } from '@/components/ExploreCard';
 import { SearchBar } from '@/components/SearchBar';
-import {
-  CategoryId,
-  filterMonuments,
-  homeCategories,
-  monumentStates,
-} from '@/data/monuments';
+import { CategoryId, homeCategories } from '@/data/monuments';
+import { filterMonumentList, useMonuments } from '@/data/useMonuments';
 import { useTheme } from '@/theme/ThemeProvider';
 
 export default function ExploreScreen() {
@@ -30,15 +27,25 @@ export default function ExploreScreen() {
   const [activeCategory, setActiveCategory] = useState<CategoryId | null>(null);
   const [activeState, setActiveState] = useState<string | null>(null);
 
+  // React Query owns loading, caching and retry. We render loading/error/empty
+  // states from its result so no manual fetch logic is needed here.
+  const { data: monuments, isPending, isError, error, refetch } =
+    useMonuments();
+
+  const states = useMemo(
+    () => Array.from(new Set((monuments ?? []).map((m) => m.state))).sort(),
+    [monuments],
+  );
+
   // One filtered list drives the chips, the state filter and the search box.
   const results = useMemo(
     () =>
-      filterMonuments({
+      filterMonumentList(monuments ?? [], {
         categoryId: activeCategory ?? undefined,
         state: activeState,
         search,
       }),
-    [activeCategory, activeState, search],
+    [monuments, activeCategory, activeState, search],
   );
 
   const hasFilters =
@@ -49,6 +56,47 @@ export default function ExploreScreen() {
     setActiveState(null);
     setSearch('');
   };
+
+  if (isPending) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View style={styles.centered}>
+        <Text
+          style={[
+            theme.typography.bodyMd,
+            { color: theme.colors.onSurfaceVariant, textAlign: 'center' },
+          ]}
+        >
+          {(error as Error)?.message ?? 'Failed to load heritage sites.'}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Retry loading heritage sites"
+          onPress={() => refetch()}
+          style={({ pressed }) => [
+            styles.retryButton,
+            pressed && { opacity: 0.85 },
+          ]}
+        >
+          <Text
+            style={[
+              theme.typography.labelMdStrong,
+              { color: theme.colors.onPrimary },
+            ]}
+          >
+            Retry
+          </Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -115,7 +163,7 @@ export default function ExploreScreen() {
               accessibilityState={{ selected: activeState !== null }}
               onPress={() =>
                 setActiveState((current) =>
-                  current === null ? (monumentStates[0] ?? null) : null,
+                  current === null ? (states[0] ?? null) : null,
                 )
               }
               style={({ pressed }) => [
@@ -166,7 +214,7 @@ export default function ExploreScreen() {
               paddingRight: theme.spacing.page,
             }}
           >
-            {monumentStates.map((state) => (
+            {states.map((state) => (
               <Pressable
                 key={state}
                 accessibilityRole="button"
@@ -348,6 +396,23 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 4,
+    },
+    centered: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: theme.spacing.page,
+      backgroundColor: theme.colors.background,
+      gap: theme.spacing.md,
+    },
+    retryButton: {
+      paddingHorizontal: theme.spacing.lg,
+      paddingVertical: theme.spacing.sm,
+      borderRadius: theme.radii.chip,
+      backgroundColor: theme.colors.primary,
+      minHeight: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
   });
 }
