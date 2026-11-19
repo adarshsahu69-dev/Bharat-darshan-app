@@ -1024,11 +1024,15 @@ export type MonumentFilters = {
   maxTicket?: number;
 };
 
-export function filterMonuments(filters: MonumentFilters): Monument[] {
+/** Filter an arbitrary list (e.g. monuments fetched via React Query). */
+export function filterMonumentList(
+  monuments: Monument[],
+  filters: MonumentFilters,
+): Monument[] {
   const { categoryId, state, search, minRating, maxTicket } = filters;
   const query = (search ?? '').trim().toLowerCase();
 
-  return allMonuments.filter((monument) => {
+  return monuments.filter((monument) => {
     if (categoryId && categoryId !== 'unesco') {
       if (!monument.categories.includes(categoryId)) {
         return false;
@@ -1063,4 +1067,9 @@ export function filterMonuments(filters: MonumentFilters): Monument[] {
     }
     return true;
   });
+}
+
+/** Convenience wrapper over the seed list for legacy/seed consumers. */
+export function filterMonuments(filters: MonumentFilters): Monument[] {
+  return filterMonumentList(allMonuments, filters);
 }
