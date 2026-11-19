@@ -2,6 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -19,12 +20,10 @@ import { SearchBar } from '@/components/SearchBar';
 import { SectionHeader } from '@/components/SectionHeader';
 import {
   CategoryId,
-  featuredMonuments,
-  filterMonuments,
   homeCategories,
-  popularMonuments,
   travelerAvatar,
 } from '@/data/monuments';
+import { filterMonumentList, useMonuments } from '@/data/useMonuments';
 import { useTheme } from '@/theme/ThemeProvider';
 
 export default function HomeScreen() {
@@ -34,22 +33,69 @@ export default function HomeScreen() {
   const [activeCategory, setActiveCategory] = useState<CategoryId | null>(null);
   const [search, setSearch] = useState('');
 
-  const featured = featuredMonuments[0] ?? popularMonuments[0];
+  // React Query owns loading, caching and retry. We render loading/error/empty
+  // states from its result so no manual fetch logic is needed here.
+  const { data: monuments, isPending, isError, error, refetch } =
+    useMonuments();
+
+  const featured = monuments?.[0];
+  const popular = monuments?.slice(0, 4) ?? [];
 
   // One filtered list drives both the category chips and the search box.
   const results = useMemo(
     () =>
-      filterMonuments({
+      filterMonumentList(monuments ?? [], {
         categoryId: activeCategory ?? undefined,
         search,
       }),
-    [activeCategory, search],
+    [monuments, activeCategory, search],
   );
 
   const isFiltering = activeCategory !== null || search.trim().length > 0;
   const activeLabel =
     homeCategories.find((category) => category.id === activeCategory)?.label ??
     'All Sites';
+
+  if (isPending) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View style={styles.centered}>
+        <Text
+          style={[
+            theme.typography.bodyMd,
+            { color: theme.colors.onSurfaceVariant, textAlign: 'center' },
+          ]}
+        >
+          {(error as Error)?.message ?? 'Failed to load heritage sites.'}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Retry loading heritage sites"
+          onPress={() => refetch()}
+          style={({ pressed }) => [
+            styles.retryButton,
+            pressed && { opacity: 0.85 },
+          ]}
+        >
+          <Text
+            style={[
+              theme.typography.labelMdStrong,
+              { color: theme.colors.onPrimary },
+            ]}
+          >
+            Retry
+          </Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -118,10 +164,12 @@ export default function HomeScreen() {
             />
 
             {results.length === 0 ? (
-              <EmptyState onAction={() => {
-                setActiveCategory(null);
-                setSearch('');
-              }} />
+              <EmptyState
+                onAction={() => {
+                  setActiveCategory(null);
+                  setSearch('');
+                }}
+              />
             ) : (
               <View style={{ gap: theme.spacing.lg }}>
                 {results.map((monument) => (
@@ -137,61 +185,74 @@ export default function HomeScreen() {
           </View>
         ) : (
           <>
-            <View
-              style={{
-                paddingHorizontal: theme.spacing.page,
-                marginTop: theme.spacing.xl,
-              }}
-            >
-              <SectionHeader
-                eyebrow="Curated Discovery"
-                title="Featured Heritage Sites"
-                right={
-                  <Text
-                    style={[
-                      theme.typography.labelMdStrong,
-                      { color: theme.colors.primary },
-                    ]}
-                  >
-                    1 / 4
-                  </Text>
-                }
-              />
-              <FeaturedCard
-                monument={featured}
-                onPress={() => router.push(`/monument/${featured.id}`)}
-              />
-            </View>
-
-            <View
-              style={{
-                paddingHorizontal: theme.spacing.page,
-                marginTop: theme.spacing.xl,
-              }}
-            >
-              <SectionHeader
-                eyebrow="Nearby Wonders"
-                title="Popular Near You"
-                right={<SeeAll onPress={() => router.push('/explore')} />}
-              />
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{
-                  gap: theme.spacing.lg,
-                  paddingRight: theme.spacing.page,
-                  paddingVertical: theme.spacing.xs,
+            {featured ? (
+              <View
+                style={{
+                  paddingHorizontal: theme.spacing.page,
+                  marginTop: theme.spacing.xl,
                 }}
               >
-                {popularMonuments.map((monument) => (
-                  <PopularCard
-                    key={monument.id}
-                    monument={monument}
-                    onPress={() => router.push(`/monument/${monument.id}`)}
-                  />
-                ))}
-              </ScrollView>
-            </View>
+                <SectionHeader
+                  eyebrow="Curated Discovery"
+                  title="Featured Heritage Sites"
+                  right={
+                    <Text
+                      style={[
+                        theme.typography.labelMdStrong,
+                        { color: theme.colors.primary },
+                      ]}
+                    >
+                      1 / {Math.max(1, (monuments ?? []).length)}
+                    </Text>
+                  }
+                />
+                <FeaturedCard
+                  monument={featured}
+                  onPress={() => router.push(`/monument/${featured.id}`)}
+                />
+              </View>
+            ) : (
+              <View
+                style={{
+                  paddingHorizontal: theme.spacing.page,
+                  marginTop: theme.spacing.xl,
+                }}
+              >
+                <EmptyState />
+              </View>
+            )}
+
+            {popular.length > 0 ? (
+              <View
+                style={{
+                  paddingHorizontal: theme.spacing.page,
+                  marginTop: theme.spacing.xl,
+                }}
+              >
+                <SectionHeader
+                  eyebrow="Nearby Wonders"
+                  title="Popular Near You"
+                  right={<SeeAll onPress={() => router.push('/explore')} />}
+                />
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{
+                    gap: theme.spacing.lg,
+                    paddingRight: theme.spacing.page,
+                    paddingVertical: theme.spacing.xs,
+                  }}
+                >
+                  {popular.map((monument) => (
+                    <PopularCard
+                      key={monument.id}
+                      monument={monument}
+                      onPress={() => router.push(`/monument/${monument.id}`)}
+                    />
+                  ))}
+                </ScrollView>
+              </View>
+            ) : null}
           </>
         )}
       </ScrollView>
@@ -360,6 +421,23 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
       paddingBottom: theme.spacing.sm,
       borderBottomWidth: 1,
       borderBottomColor: `${theme.colors.outlineVariant}4D`,
+    },
+    centered: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingHorizontal: theme.spacing.page,
+      backgroundColor: theme.colors.background,
+      gap: theme.spacing.md,
+    },
+    retryButton: {
+      paddingHorizontal: theme.spacing.lg,
+      paddingVertical: theme.spacing.sm,
+      borderRadius: theme.radii.chip,
+      backgroundColor: theme.colors.primary,
+      minHeight: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     brandRow: {
       flexDirection: 'row',
