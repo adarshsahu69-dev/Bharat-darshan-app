@@ -1,7 +1,7 @@
 import { MaterialIcons } from '@expo/vector-icons';
+import { Image, ImageContentFit } from 'expo-image';
 import { useMemo, useState } from 'react';
 import {
-  Image,
   ImageStyle,
   StyleProp,
   StyleSheet,
@@ -25,9 +25,8 @@ type Props = {
 /**
  * Image with a graceful fallback.
  *
- * The original Stitch `googleusercontent` URLs expire and redirect to a Google
- * login page, so remote images render blank. SafeImage retries once, then shows
- * a themed placeholder instead of an empty box.
+ * Uses expo-image for disk+memory caching and smooth transitions. A missing or
+ * failed URL falls back to a themed placeholder so cards never render blank.
  */
 export function SafeImage({
   uri,
@@ -43,17 +42,23 @@ export function SafeImage({
   const [failed, setFailed] = useState(false);
 
   const hasUri = Boolean(uri) && !failed;
+  const contentFit = (resizeMode ?? 'cover') as ImageContentFit;
 
   return (
     <View style={[styles.container, containerStyle]}>
       {hasUri ? (
         <Image
-          source={{ uri }}
-          style={[StyleSheet.absoluteFill, style]}
-          resizeMode={resizeMode}
-          onError={() => setFailed(true)}
-          accessibilityIgnoresInvertColors
+          source={uri}
+          style={[StyleSheet.absoluteFill, style as any]}
+          contentFit={contentFit}
+          transition={200}
+          cachePolicy="memory-disk"
           accessibilityLabel={accessibilityLabel}
+          onError={(event) => {
+            // Log the failing URL so broken image URLs are visible during dev.
+            console.warn('[SafeImage] failed to load image', uri, event?.error);
+            setFailed(true);
+          }}
         />
       ) : (
         <View style={[StyleSheet.absoluteFill, styles.fallback]}>
