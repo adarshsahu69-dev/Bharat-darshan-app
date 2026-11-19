@@ -1,6 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker, PROVIDER_DEFAULT, UrlTile } from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +8,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MapCategoryChips } from '@/components/MapCategoryChips';
 import { MapPreviewSheet } from '@/components/MapPreviewSheet';
 import { SearchBar } from '@/components/SearchBar';
+import { MAP_TILE_URL_DARK, MAP_TILE_URL_LIGHT } from '@/constants/mapTiles';
 import {
   defaultPreview as seedDefaultPreview,
   mapInitialRegion,
@@ -54,14 +55,75 @@ export function NativeMapCanvas({
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
-  const [query, setQuery] = useState('Amber Fort, Amer');
+  const [query, setQuery] = useState('');
+  const lastFitKeyRef = useRef<string | null>(null);
 
-  const selectedPin = pins.find((pin) => pin.id === selectedPinId) ?? pins[0];
+  const tileUrl =
+    theme.scheme === 'dark' ? MAP_TILE_URL_DARK : MAP_TILE_URL_LIGHT;
+
+  const displayedPins = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) {
+      return pins;
+    }
+    return pins.filter((pin) => {
+      const haystack = `${pin.name} ${pin.city} ${pin.state}`.toLowerCase();
+      return haystack.includes(normalized);
+    });
+  }, [pins, query]);
+
+  const selectedPin =
+    displayedPins.find((pin) => pin.id === selectedPinId) ?? displayedPins[0];
   const previews = previewByMonument ?? seedPreviewByMonument;
   const fallbackPreview = defaultPreview ?? seedDefaultPreview;
   const preview = selectedPin
     ? (previews[selectedPin.monumentId] ?? fallbackPreview)
     : fallbackPreview;
+
+  const fitKey = `${activeCategory}|${query.trim().toLowerCase()}|${displayedPins
+    .map((pin) => pin.id)
+    .join(',')}`;
+
+  useEffect(() => {
+    // Keep the initial Jaipur/Amer region on first render; fit when filters change.
+    if (lastFitKeyRef.current === null) {
+      lastFitKeyRef.current = fitKey;
+      return;
+    }
+    if (lastFitKeyRef.current === fitKey) {
+      return;
+    }
+    lastFitKeyRef.current = fitKey;
+
+    if (displayedPins.length === 0) {
+      return;
+    }
+
+    if (displayedPins.length === 1) {
+      const [pin] = displayedPins;
+      mapRef.current?.animateToRegion(
+        {
+          latitude: pin.latitude,
+          longitude: pin.longitude,
+          latitudeDelta: 0.08,
+          longitudeDelta: 0.08,
+        },
+        350,
+      );
+      return;
+    }
+
+    mapRef.current?.fitToCoordinates(
+      displayedPins.map((pin) => ({
+        latitude: pin.latitude,
+        longitude: pin.longitude,
+      })),
+      {
+        edgePadding: { top: 180, right: 60, bottom: 360, left: 60 },
+        animated: true,
+      },
+    );
+  }, [displayedPins, fitKey]);
 
   const focusPin = (pin: MapPin) => {
     onSelectPin(pin);
@@ -69,8 +131,8 @@ export function NativeMapCanvas({
       {
         latitude: pin.latitude,
         longitude: pin.longitude,
-        latitudeDelta: 0.06,
-        longitudeDelta: 0.06,
+        latitudeDelta: 0.02,
+        longitudeDelta: 0.02,
       },
       350,
     );
@@ -108,17 +170,15 @@ export function NativeMapCanvas({
           console.log('[map] onMapReady');
         }}
       >
-        {/* OpenStreetMap raster tiles. Needs no API key and works even when the
-            platform's default provider cannot initialise (e.g. Android without a
-            Google Maps key), so the map is never left blank. */}
+        {/* CARTO raster basemap tiles (theme-aware) over a blank base map. */}
         <UrlTile
-          urlTemplate="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+          urlTemplate={tileUrl}
           zIndex={-1}
-          maximumNativeZ={19}
+          maximumZ={19}
         />
 
-        {pins.map((pin) => {
-          const selected = pin.id === selectedPinId;
+        {displayedPins.map((pin) => {
+          const selected = pin.id === selectedPin?.id;
           return (
             <Marker
               key={pin.id}
@@ -162,7 +222,7 @@ export function NativeMapCanvas({
         })}
       </MapView>
 
-      <Text style={styles.attribution}>© OpenStreetMap contributors</Text>
+      <Text style={styles.attribution}>© OpenStreetMap contributors © CARTO</Text>
 
       <View
         style={[

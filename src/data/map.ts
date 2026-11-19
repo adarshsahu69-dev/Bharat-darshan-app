@@ -25,12 +25,12 @@ export type MapCategory = {
     | 'forest';
 };
 
-/** Default camera showing the whole country so every pin is visible. */
+/** Default camera focused on Jaipur / Amer. */
 export const mapInitialRegion = {
-  latitude: 22.5,
-  longitude: 79.0,
-  latitudeDelta: 20,
-  longitudeDelta: 20,
+  latitude: 26.92,
+  longitude: 75.82,
+  latitudeDelta: 0.25,
+  longitudeDelta: 0.25,
 };
 
 export const mapSearchPlaceholder = 'Search monuments, cities, or landmarks';
