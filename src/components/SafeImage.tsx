@@ -16,6 +16,9 @@ type Props = {
   style?: StyleProp<ImageStyle>;
   /** Container style, used for rounded clipping and sizing. */
   containerStyle?: StyleProp<ViewStyle>;
+  width?: number;
+  height?: number;
+  contentFit?: ImageContentFit;
   resizeMode?: ImageStyle['resizeMode'];
   accessibilityLabel?: string;
   iconName?: keyof typeof MaterialIcons.glyphMap;
@@ -23,7 +26,7 @@ type Props = {
 };
 
 /**
- * Image with a graceful fallback.
+ * Remote image with a graceful fallback.
  *
  * Uses expo-image for disk+memory caching and smooth transitions. A missing or
  * failed URL falls back to a themed placeholder so cards never render blank.
@@ -32,6 +35,9 @@ export function SafeImage({
   uri,
   style,
   containerStyle,
+  width,
+  height,
+  contentFit,
   resizeMode = 'cover',
   accessibilityLabel,
   iconName = 'image',
@@ -41,18 +47,33 @@ export function SafeImage({
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const [failed, setFailed] = useState(false);
 
-  const hasUri = Boolean(uri) && !failed;
-  const contentFit = (resizeMode ?? 'cover') as ImageContentFit;
+  const hasUri = typeof uri === 'string' && uri.trim().length > 0 && !failed;
+  const fit = contentFit ?? (resizeMode as ImageContentFit) ?? 'cover';
+  const sizeStyle =
+    width !== undefined || height !== undefined ? { width, height } : null;
 
   return (
-    <View style={[styles.container, containerStyle]}>
+    <View
+      style={[
+        styles.container,
+        sizeStyle,
+        !sizeStyle && !containerStyle ? styles.fill : null,
+        containerStyle,
+      ]}
+    >
       {hasUri ? (
         <Image
-          source={uri}
-          style={[StyleSheet.absoluteFill, style as any]}
-          contentFit={contentFit}
+          source={{ uri }}
+          style={[
+            StyleSheet.absoluteFill,
+            { backgroundColor: theme.colors.surfaceContainer },
+            sizeStyle,
+            style as any,
+          ]}
+          contentFit={fit}
           transition={200}
           cachePolicy="memory-disk"
+          recyclingKey={uri}
           accessibilityLabel={accessibilityLabel}
           onError={(event) => {
             // Log the failing URL so broken image URLs are visible during dev.
@@ -78,6 +99,13 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
     container: {
       backgroundColor: theme.colors.surfaceContainer,
       overflow: 'hidden',
+    },
+    fill: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
     },
     fallback: {
       alignItems: 'center',

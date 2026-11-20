@@ -138,7 +138,8 @@ export default function MonumentDetailScreen() {
         <View style={styles.heroWrap}>
           <SafeImage
             uri={monument.image}
-            style={styles.hero}
+            containerStyle={styles.hero}
+            contentFit="cover"
             accessibilityLabel={monument.name}
           />
           <LinearGradient
@@ -215,7 +216,10 @@ export default function MonumentDetailScreen() {
               {detail?.galleryImage ? (
                 <SafeImage
                   uri={detail.galleryImage}
-                  style={styles.galleryThumb}
+                  width={56}
+                  height={56}
+                  containerStyle={styles.galleryThumb}
+                  contentFit="cover"
                   accessibilityLabel={`${monument.name} gallery`}
                 />
               ) : null}

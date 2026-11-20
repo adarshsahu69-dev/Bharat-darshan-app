@@ -122,7 +122,10 @@ export function TripStopCard({
           <View style={styles.footer}>
             <SafeImage
               uri={stop.image}
-              style={styles.thumb}
+              width={72}
+              height={72}
+              containerStyle={styles.thumb}
+              contentFit="cover"
               accessibilityLabel={stop.name}
             />
             <View style={styles.ticketCol}>

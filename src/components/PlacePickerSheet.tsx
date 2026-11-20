@@ -156,7 +156,10 @@ export function PlacePickerSheet({ visible, dayId, onClose }: Props) {
               <View key={monument.id} style={styles.row}>
                 <SafeImage
                   uri={monument.image}
-                  style={styles.thumb}
+                  width={56}
+                  height={56}
+                  containerStyle={styles.thumb}
+                  contentFit="cover"
                   accessibilityLabel={monument.name}
                 />
                 <View style={styles.rowText}>

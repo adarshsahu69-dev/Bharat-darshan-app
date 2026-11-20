@@ -85,9 +85,9 @@ This creates:
   also create/verify it in **Storage → New bucket** with name `monument-images`
   and **Public bucket** enabled.
 
-Image objects in the bucket follow paths like `<monument-id>/<filename>` (e.g.
-`amber-fort/amber-fort.jpg`). App screens load images from the `image_url`
-column (Supabase Storage URLs); do not use Wikimedia `Special:FilePath` or
+Image objects in the bucket follow paths like `<monument-id>/cover.jpg` (e.g.
+`amber-fort/cover.jpg`). App screens load images from the `image_url` column
+(Supabase Storage URLs); do not use Wikimedia `Special:FilePath` or
 `googleusercontent` URLs.
 
 ### 2. Seed monument data
@@ -126,21 +126,54 @@ npm run web       # Expo start --web
 npm run typecheck # tsc --noEmit
 ```
 
+## Scripts
+
+One-time and maintenance scripts live in `scripts/`.
+
+### Upload monument images to Supabase Storage
+
+`scripts/upload-images.mjs` (Node 18+) downloads monument photos, uploads them to
+the public `monument-images` bucket as `<id>/cover.jpg`, and updates each row's
+`image_url` in `public.monuments` to the public storage URL.
+
+```bash
+SUPABASE_URL="https://<project>.supabase.co" \
+SUPABASE_SERVICE_ROLE_KEY="<service-role-key>" \
+node scripts/upload-images.mjs
+```
+
+- Set `SUPABASE_SERVICE_ROLE_KEY` **only in the terminal session** for this run.
+  **Never commit it**, never put it in `.env`, `.env.example`, or any tracked
+  file, and never use it in the app client (the app must use the anon key).
+- Uses the official `@supabase/supabase-js` client and built-in `fetch`.
+- Fetches all `public.monuments` rows, downloads each source image with
+  URL-encoded file names and a polite `User-Agent`, processes rows one at a time
+  with a pause and retries on 429/5xx, uploads with `upsert: true` and correct
+  `contentType`, updates `image_url`, and prints a summary table (id, status,
+  error).
+- For `chandigarh-palace`, `umaibhawan-palace`, and `indian-museum` it searches
+  Wikimedia Commons for a better matching photo and prints the picked file for
+  review.
+
+`node --experimental-strip-types scripts/seed-sql.ts` regenerates `supabase/seed.sql` from seed data (optional).
+
 ## Project structure
 
 ```
 app/
   _layout.tsx          # font loading, theme provider, root navigator
   (tabs)/
-    _layout.tsx        # bottom tabs: Home, Explore, Trips
+    _layout.tsx        # bottom tabs: Home, Explore, Saved, Trips
     index.tsx          # Home
     explore.tsx        # Explore
+    saved.tsx          # Saved/bookmarked places
     trips.tsx          # Trip planner
   +not-found.tsx
 src/
   theme/               # all design tokens and theme provider
   components/          # reusable UI (cards, chips, sheets)
   data/                # mock data (monuments, trips)
+scripts/               # maintenance/one-time scripts
 ```
 
 ## Design system

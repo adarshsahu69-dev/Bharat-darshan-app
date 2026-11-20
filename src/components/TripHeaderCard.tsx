@@ -100,7 +100,10 @@ export function TripHeaderCard({
               >
                 <SafeImage
                   uri={traveler.image}
-                  style={styles.avatarImage}
+                  width={30}
+                  height={30}
+                  containerStyle={styles.avatarImage}
+                  contentFit="cover"
                   accessibilityLabel={traveler.name}
                   iconName="person"
                   iconSize={14}
