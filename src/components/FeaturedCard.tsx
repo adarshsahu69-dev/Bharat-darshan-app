@@ -1,10 +1,11 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { SafeImage } from '@/components/SafeImage';
 import { Monument } from '@/data/monuments';
+import { selectIsSaved, useBookmarkStore } from '@/store/bookmarkStore';
 import { useTheme } from '@/theme/ThemeProvider';
 
 type Props = {
@@ -56,7 +57,7 @@ export function FeaturedCard({ monument, onPress }: Props) {
         ) : (
           <View />
         )}
-        <BookmarkButton />
+        <BookmarkButton monumentId={monument.id} />
       </View>
 
       <View style={styles.bottomContent}>
@@ -169,17 +170,18 @@ export function FeaturedCard({ monument, onPress }: Props) {
   );
 }
 
-function BookmarkButton() {
+function BookmarkButton({ monumentId }: { monumentId: string }) {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const [saved, setSaved] = useState(false);
+  const saved = useBookmarkStore(selectIsSaved(monumentId));
+  const toggleSaved = useBookmarkStore((state) => state.toggleSaved);
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={saved ? 'Remove bookmark' : 'Bookmark this site'}
       accessibilityState={{ selected: saved }}
-      onPress={() => setSaved((value) => !value)}
+      onPress={() => toggleSaved(monumentId)}
       hitSlop={8}
       style={({ pressed }) => [
         styles.bookmarkButton,

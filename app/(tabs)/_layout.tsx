@@ -17,6 +17,12 @@ const TABS: { name: string; title: string; icon: IconName; activeIcon: IconName 
       activeIcon: 'search',
     },
     {
+      name: 'saved',
+      title: 'Saved',
+      icon: 'bookmark-outline',
+      activeIcon: 'bookmark',
+    },
+    {
       name: 'trips',
       title: 'Trips',
       icon: 'calendar-outline',

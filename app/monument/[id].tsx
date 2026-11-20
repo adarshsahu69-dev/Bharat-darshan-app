@@ -18,6 +18,7 @@ import { AddToTripSheet } from '@/components/AddToTripSheet';
 import { SafeImage } from '@/components/SafeImage';
 import { getMonumentDetail, Monument } from '@/data/monuments';
 import { useMonument } from '@/data/useMonuments';
+import { selectIsSaved, useBookmarkStore } from '@/store/bookmarkStore';
 import { useTheme } from '@/theme/ThemeProvider';
 
 export default function MonumentDetailScreen() {
@@ -35,7 +36,8 @@ export default function MonumentDetailScreen() {
     useMonument(monumentId);
   const detail = getMonumentDetail(monumentId);
 
-  const [saved, setSaved] = useState(false);
+  const saved = useBookmarkStore(selectIsSaved(monumentId));
+  const toggleSaved = useBookmarkStore((state) => state.toggleSaved);
   const [addOpen, setAddOpen] = useState(false);
 
   if (isPending) {
@@ -192,7 +194,7 @@ export default function MonumentDetailScreen() {
                   saved ? 'Remove bookmark' : 'Bookmark site'
                 }
                 accessibilityState={{ selected: saved }}
-                onPress={() => setSaved((value) => !value)}
+                onPress={() => toggleSaved(monumentId)}
                 hitSlop={6}
                 style={({ pressed }) => [
                   styles.heroButton,

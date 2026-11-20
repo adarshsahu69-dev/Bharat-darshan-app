@@ -1,20 +1,37 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useMemo } from 'react';
+import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { SafeImage } from '@/components/SafeImage';
 import { Monument } from '@/data/monuments';
+import { selectIsSaved, useBookmarkStore } from '@/store/bookmarkStore';
 import { useTheme } from '@/theme/ThemeProvider';
 
 type Props = {
   monument: Monument;
   onPress?: () => void;
+  /** Show Get Directions and Add to Trip actions (used by the Saved tab). */
+  showActions?: boolean;
+  onAddToTrip?: (monument: Monument) => void;
 };
 
-export function ExploreCard({ monument, onPress }: Props) {
+export function ExploreCard({
+  monument,
+  onPress,
+  showActions = false,
+  onAddToTrip,
+}: Props) {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+
+  const openDirections = () => {
+    Linking.openURL(
+      `https://www.google.com/maps/dir/?api=1&destination=${monument.lat},${monument.lng}`,
+    ).catch(() => {
+      /* Maps app unavailable on this platform. */
+    });
+  };
 
   return (
     <Pressable
@@ -55,7 +72,7 @@ export function ExploreCard({ monument, onPress }: Props) {
           </View>
         ) : null}
 
-        <BookmarkButton initiallySaved={monument.initiallySaved ?? false} />
+        <BookmarkButton monumentId={monument.id} />
 
         <View style={styles.imageFooter}>
           <View style={{ flex: 1 }}>
@@ -176,22 +193,74 @@ export function ExploreCard({ monument, onPress }: Props) {
             />
           </Pressable>
         </View>
+
+        {showActions ? (
+          <View style={styles.actionsRow}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Get directions to ${monument.name}`}
+              onPress={openDirections}
+              style={({ pressed }) => [
+                styles.actionButtonSecondary,
+                pressed && { opacity: 0.9 },
+              ]}
+            >
+              <MaterialIcons
+                name="directions"
+                size={16}
+                color={theme.colors.secondary}
+              />
+              <Text
+                style={[
+                  theme.typography.labelMd,
+                  { color: theme.colors.secondary },
+                ]}
+              >
+                Get Directions
+              </Text>
+            </Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Add ${monument.name} to trip`}
+              onPress={() => onAddToTrip?.(monument)}
+              style={({ pressed }) => [
+                styles.actionButtonPrimary,
+                pressed && { opacity: 0.92 },
+              ]}
+            >
+              <MaterialIcons
+                name="playlist-add"
+                size={16}
+                color={theme.colors.onPrimary}
+              />
+              <Text
+                style={[
+                  theme.typography.labelMd,
+                  { color: theme.colors.onPrimary },
+                ]}
+              >
+                Add to Trip
+              </Text>
+            </Pressable>
+          </View>
+        ) : null}
       </View>
     </Pressable>
   );
 }
 
-function BookmarkButton({ initiallySaved }: { initiallySaved: boolean }) {
+function BookmarkButton({ monumentId }: { monumentId: string }) {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
-  const [saved, setSaved] = useState(initiallySaved);
+  const saved = useBookmarkStore(selectIsSaved(monumentId));
+  const toggleSaved = useBookmarkStore((state) => state.toggleSaved);
 
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={saved ? 'Remove bookmark' : 'Bookmark this site'}
       accessibilityState={{ selected: saved }}
-      onPress={() => setSaved((value) => !value)}
+      onPress={() => toggleSaved(monumentId)}
       hitSlop={8}
       style={({ pressed }) => [
         styles.bookmarkButton,
@@ -287,6 +356,36 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 4,
+    },
+    actionsRow: {
+      flexDirection: 'row',
+      gap: theme.spacing.sm,
+      marginTop: theme.spacing.md,
+    },
+    actionButtonSecondary: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      paddingVertical: 10,
+      borderRadius: theme.radii.chip,
+      backgroundColor: theme.colors.surfaceContainer,
+      borderWidth: 1,
+      borderColor: theme.colors.secondary,
+      minHeight: 44,
+    },
+    actionButtonPrimary: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      paddingVertical: 10,
+      borderRadius: theme.radii.chip,
+      backgroundColor: theme.colors.primary,
+      minHeight: 44,
+      ...theme.shadows.warmSoft,
     },
   });
 }
