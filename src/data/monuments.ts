@@ -1015,7 +1015,7 @@ export const monumentStates: string[] = Array.from(
   new Set(allMonuments.map((monument) => monument.state)),
 ).sort();
 
-/** Filter helper shared by Home, Explore and Map. */
+/** Filter helper shared by Home and Explore. */
 export type MonumentFilters = {
   categoryId?: CategoryId;
   state?: string | null;

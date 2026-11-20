@@ -1,6 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { SafeImage } from '@/components/SafeImage';
 import { TripStop } from '@/data/trips';
@@ -38,6 +38,14 @@ export function TripStopCard({
       : tone === 'secondary'
         ? theme.colors.secondary
         : theme.colors.primary;
+
+  const openDirections = () => {
+    Linking.openURL(
+      `https://www.google.com/maps/dir/?api=1&destination=${stop.lat},${stop.lng}`,
+    ).catch(() => {
+      /* Maps app unavailable on this platform. */
+    });
+  };
 
   const hasActions = Boolean(onRemove || onMoveUp || onMoveDown);
 
@@ -152,29 +160,36 @@ export function TripStopCard({
           </View>
         </Pressable>
 
-        {hasActions ? (
-          <View style={styles.actionRow}>
-            <StopAction
-              icon="arrow-upward"
-              label={`Move ${stop.name} up`}
-              disabled={!canMoveUp}
-              onPress={onMoveUp}
-            />
-            <StopAction
-              icon="arrow-downward"
-              label={`Move ${stop.name} down`}
-              disabled={!canMoveDown}
-              onPress={onMoveDown}
-            />
-            <View style={{ flex: 1 }} />
-            <StopAction
-              icon="delete-outline"
-              label={`Remove ${stop.name}`}
-              danger
-              onPress={onRemove}
-            />
-          </View>
-        ) : null}
+        <View style={styles.actionRow}>
+          <StopAction
+            icon="directions"
+            label={`Get directions to ${stop.name}`}
+            onPress={openDirections}
+          />
+          {hasActions ? (
+            <>
+              <StopAction
+                icon="arrow-upward"
+                label={`Move ${stop.name} up`}
+                disabled={!canMoveUp}
+                onPress={onMoveUp}
+              />
+              <StopAction
+                icon="arrow-downward"
+                label={`Move ${stop.name} down`}
+                disabled={!canMoveDown}
+                onPress={onMoveDown}
+              />
+              <View style={{ flex: 1 }} />
+              <StopAction
+                icon="delete-outline"
+                label={`Remove ${stop.name}`}
+                danger
+                onPress={onRemove}
+              />
+            </>
+          ) : null}
+        </View>
       </View>
     </View>
   );

@@ -127,22 +127,7 @@ export default function ExploreScreen() {
                 Over 4,000 national monuments &amp; sacred sites
               </Text>
             </View>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Map view"
-              onPress={() => router.push('/map')}
-              hitSlop={8}
-              style={({ pressed }) => [
-                styles.mapButton,
-                pressed && { opacity: 0.85 },
-              ]}
-            >
-              <MaterialIcons
-                name="map"
-                size={20}
-                color={theme.colors.secondary}
-              />
-            </Pressable>
+
           </View>
 
           <View style={styles.searchRow}>
@@ -354,14 +339,7 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
       alignItems: 'center',
       gap: theme.spacing.sm,
     },
-    mapButton: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: theme.colors.secondaryContainer,
-    },
+
     filterButton: {
       width: 44,
       height: 44,

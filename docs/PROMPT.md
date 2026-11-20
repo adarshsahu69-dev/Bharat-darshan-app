@@ -3,7 +3,6 @@ You are building "Bharat Darshan", an Android app for exploring India's forts, t
 ## Stack
 - React Native + Expo (SDK latest), TypeScript, Expo Router
 - Supabase for data and auth (reuse the existing schema from the BHARAT-DARSHAN website if available)
-- react-native-maps for the heritage map
 - expo-font: Playfair Display (headings), Inter (body)
 - Zustand for state, AsyncStorage for offline trip data
 
@@ -21,9 +20,8 @@ Read /docs/bharat_darshan_design_system.md before writing any UI.
 1. Home: hero, featured monuments, state/circuit chips, search bar
 2. Explore: search with suggestions, filter chips, monument cards
 3. Monument details (e.g. Amber Fort): image gallery, history, timings, ticket price in ₹, UNESCO badge, Add to Trip, Get Directions
-4. Heritage map: markers by category, bottom sheet preview on tap
-5. Trip planner: day-wise itinerary, reorder stops, total km, View Route
-Bottom tab bar: Home, Explore, Map, Trips. Active indicator in primary color.
+4. Trip planner: day-wise itinerary, reorder stops, total km, View Route
+Bottom tab bar: Home, Explore, Trips. Active indicator in primary color.
 
 ## Components to build first
 Button (primary, icon, with-icon), Card (elevated, action, interactive), Chip (action, input, with-icon), Searchbar (standard, with-suggestions), Tabs (horizontal, with-icon).
