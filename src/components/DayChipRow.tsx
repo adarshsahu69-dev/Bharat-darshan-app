@@ -8,9 +8,10 @@ type Props = {
   days: TripDay[];
   activeId: string;
   onSelect: (id: string) => void;
+  onLongPress?: (day: TripDay) => void;
 };
 
-export function DayChipRow({ days, activeId, onSelect }: Props) {
+export function DayChipRow({ days, activeId, onSelect, onLongPress }: Props) {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
@@ -28,7 +29,10 @@ export function DayChipRow({ days, activeId, onSelect }: Props) {
             accessibilityRole="button"
             accessibilityState={{ selected: active }}
             accessibilityLabel={`Day ${index + 1}, ${day.title}`}
+            accessibilityHint="Long press to rename or delete this day"
             onPress={() => onSelect(day.id)}
+            onLongPress={() => onLongPress?.(day)}
+            delayLongPress={350}
             style={({ pressed }) => [
               styles.chip,
               active ? styles.chipActive : styles.chipInactive,
@@ -44,6 +48,8 @@ export function DayChipRow({ days, activeId, onSelect }: Props) {
               Day {index + 1}
             </Text>
             <Text
+              numberOfLines={1}
+              ellipsizeMode="tail"
               style={[
                 theme.typography.labelSm,
                 {
@@ -85,6 +91,7 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
     },
     chip: {
       minWidth: 92,
+      maxWidth: 160,
       paddingHorizontal: theme.spacing.lg,
       paddingVertical: theme.spacing.sm,
       borderRadius: theme.radii.chip,

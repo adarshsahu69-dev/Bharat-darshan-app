@@ -85,7 +85,8 @@ export type TripStore = {
   setTripDates: (startDate: string, endDate: string) => void;
   setTravelerCount: (count: number) => void;
 
-  addDay: () => string;
+  addDay: (name?: string) => string;
+  renameDay: (dayId: string, name: string) => void;
   removeDay: (dayId: string) => void;
 
   addStopToDay: (dayId: string, monumentId: string) => void;
@@ -177,13 +178,14 @@ export const useTripStore = create<TripStore>()(
           },
         })),
 
-      addDay: () => {
+      addDay: (name) => {
         const dayId = makeId('day');
         set((state) => {
           const nextNumber = state.trip.days.length + 1;
+          const trimmed = name?.trim() ?? '';
           const day: TripDay = {
             id: dayId,
-            title: `Day ${nextNumber}`,
+            title: trimmed.length > 0 ? trimmed : `Day ${nextNumber}`,
             date: nextDayDate(state.trip.days),
             stops: [],
           };
@@ -193,6 +195,20 @@ export const useTripStore = create<TripStore>()(
         });
         return dayId;
       },
+
+      renameDay: (dayId, name) =>
+        set((state) => {
+          const index = state.trip.days.findIndex((day) => day.id === dayId);
+          if (index < 0) {
+            return state;
+          }
+          const trimmed = name.trim();
+          const title = trimmed.length > 0 ? trimmed : `Day ${index + 1}`;
+          const days = state.trip.days.map((day) =>
+            day.id === dayId ? { ...day, title } : day,
+          );
+          return { trip: { ...state.trip, days } };
+        }),
 
       removeDay: (dayId) =>
         set((state) => {

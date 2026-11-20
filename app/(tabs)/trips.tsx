@@ -12,6 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BudgetEditSheet } from '@/components/BudgetEditSheet';
 import { DayChipRow } from '@/components/DayChipRow';
+import { DayNameSheet } from '@/components/DayNameSheet';
 import { PlacePickerSheet } from '@/components/PlacePickerSheet';
 import { TripBudgetCard } from '@/components/TripBudgetCard';
 import { TripEditSheet } from '@/components/TripEditSheet';
@@ -27,6 +28,7 @@ import {
   tripSitesCount,
   tripTravelerImages,
   tripUnescoCount,
+  TripDay,
 } from '@/data/trips';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useTripStore } from '@/store/tripStore';
@@ -39,6 +41,7 @@ export default function TripsScreen() {
 
   const trip = useTripStore((state) => state.trip);
   const addDay = useTripStore((state) => state.addDay);
+  const renameDay = useTripStore((state) => state.renameDay);
   const removeDay = useTripStore((state) => state.removeDay);
   const addStopToDay = useTripStore((state) => state.addStopToDay);
   const removeStop = useTripStore((state) => state.removeStop);
@@ -48,6 +51,9 @@ export default function TripsScreen() {
   const [budgetOpen, setBudgetOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [daySheet, setDaySheet] = useState<
+    { mode: 'add' } | { mode: 'rename'; dayId: string } | null
+  >(null);
 
   const activeDay =
     trip.days.find((day) => day.id === activeDayId) ?? trip.days[0];
@@ -65,9 +71,38 @@ export default function TripsScreen() {
   const perTraveler = tripPerTraveler(trip);
   const prepaid = tripPrepaid(trip);
 
-  const handleAddDay = () => {
-    const id = addDay();
-    setActiveDayId(id);
+  const openAddDaySheet = () => {
+    setDaySheet({ mode: 'add' });
+  };
+
+  const openRenameDaySheet = (dayId: string) => {
+    setDaySheet({ mode: 'rename', dayId });
+  };
+
+  const handleDaySheetSave = (name: string) => {
+    if (!daySheet) {
+      return;
+    }
+    if (daySheet.mode === 'add') {
+      const id = addDay(name);
+      setActiveDayId(id);
+    } else {
+      renameDay(daySheet.dayId, name);
+    }
+    setDaySheet(null);
+  };
+
+  const handleDaySheetDelete = () => {
+    if (!daySheet || daySheet.mode !== 'rename') {
+      return;
+    }
+    const dayId = daySheet.dayId;
+    const remaining = trip.days.filter((day) => day.id !== dayId);
+    removeDay(dayId);
+    if (activeDayId === dayId) {
+      setActiveDayId(remaining[0]?.id ?? '');
+    }
+    setDaySheet(null);
   };
 
   const confirmRemoveDay = () => {
@@ -91,6 +126,17 @@ export default function TripsScreen() {
       ],
     );
   };
+
+  const daySheetTarget =
+    daySheet?.mode === 'rename'
+      ? trip.days.find((day) => day.id === daySheet.dayId) ?? null
+      : null;
+  const daySheetNumber =
+    daySheet?.mode === 'add'
+      ? trip.days.length + 1
+      : daySheetTarget
+        ? trip.days.findIndex((day) => day.id === daySheetTarget.id) + 1
+        : 1;
 
   const confirmRemoveStop = (stopId: string, stopName: string) => {
     if (!activeDay) {
@@ -181,17 +227,39 @@ export default function TripsScreen() {
               >
                 Daily Itinerary
               </Text>
-              <Text
-                style={[
-                  theme.typography.headlineSm,
-                  {
-                    color: theme.colors.secondary,
-                    marginTop: 2,
-                  },
-                ]}
-              >
-                {activeDay?.title ?? 'No days yet'}
-              </Text>
+              <View style={styles.dayTitleRow}>
+                <Text
+                  numberOfLines={1}
+                  style={[
+                    theme.typography.headlineSm,
+                    {
+                      color: theme.colors.secondary,
+                      marginTop: 2,
+                      flexShrink: 1,
+                    },
+                  ]}
+                >
+                  {activeDay?.title ?? 'No days yet'}
+                </Text>
+                {activeDay ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`Rename ${activeDay.title}`}
+                    onPress={() => openRenameDaySheet(activeDay.id)}
+                    hitSlop={8}
+                    style={({ pressed }) => [
+                      styles.editDayButton,
+                      pressed && { opacity: 0.7 },
+                    ]}
+                  >
+                    <MaterialIcons
+                      name="edit"
+                      size={16}
+                      color={theme.colors.primary}
+                    />
+                  </Pressable>
+                ) : null}
+              </View>
               <Text
                 style={[
                   theme.typography.bodySm,
@@ -207,7 +275,7 @@ export default function TripsScreen() {
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Add day"
-              onPress={handleAddDay}
+              onPress={openAddDaySheet}
               hitSlop={6}
               style={({ pressed }) => [
                 styles.addDayButton,
@@ -234,6 +302,7 @@ export default function TripsScreen() {
             days={trip.days}
             activeId={activeDay?.id ?? ''}
             onSelect={setActiveDayId}
+            onLongPress={(day: TripDay) => openRenameDaySheet(day.id)}
           />
 
           {activeDay && trip.days.length > 1 ? (
@@ -343,6 +412,16 @@ export default function TripsScreen() {
         dayId={activeDay?.id ?? null}
         onClose={() => setPickerOpen(false)}
       />
+      <DayNameSheet
+        visible={daySheet !== null}
+        mode={daySheet?.mode ?? 'add'}
+        day={daySheetTarget}
+        dayNumber={daySheetNumber}
+        canDelete={trip.days.length > 1}
+        onClose={() => setDaySheet(null)}
+        onSave={handleDaySheetSave}
+        onDelete={handleDaySheetDelete}
+      />
     </View>
   );
 }
@@ -371,6 +450,20 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
       alignItems: 'flex-end',
       justifyContent: 'space-between',
       gap: theme.spacing.md,
+    },
+    dayTitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+    },
+    editDayButton: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: theme.colors.primaryContainer,
+      marginTop: 2,
     },
     addDayButton: {
       flexDirection: 'row',

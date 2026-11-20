@@ -17,6 +17,7 @@ type Props = {
   title?: string;
   subtitle?: string;
   children: ReactNode;
+  showCloseButton?: boolean;
 };
 
 /**
@@ -29,6 +30,7 @@ export function BottomSheet({
   title,
   subtitle,
   children,
+  showCloseButton = true,
 }: Props) {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
@@ -78,25 +80,27 @@ export function BottomSheet({
                   </Text>
                 ) : null}
               </View>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Close"
-                onPress={onClose}
-                hitSlop={8}
-                style={({ pressed }) => [
-                  styles.closeButton,
-                  pressed && { opacity: 0.7 },
-                ]}
-              >
-                <Text
-                  style={[
-                    theme.typography.labelMd,
-                    { color: theme.colors.primary },
+              {showCloseButton ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Close"
+                  onPress={onClose}
+                  hitSlop={8}
+                  style={({ pressed }) => [
+                    styles.closeButton,
+                    pressed && { opacity: 0.7 },
                   ]}
                 >
-                  Done
-                </Text>
-              </Pressable>
+                  <Text
+                    style={[
+                      theme.typography.labelMd,
+                      { color: theme.colors.primary },
+                    ]}
+                  >
+                    Done
+                  </Text>
+                </Pressable>
+              ) : null}
             </View>
           ) : null}
 
