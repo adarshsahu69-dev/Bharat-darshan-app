@@ -24,13 +24,12 @@ import {
   dayMetaLabel,
   formatINR,
   formatTripDates,
-  tripPerTraveler,
-  tripPrepaid,
   tripSitesCount,
   tripTravelerImages,
   tripUnescoCount,
   TripDay,
 } from '@/data/trips';
+import { computeTripBudgetFromTrip } from '@/lib/tripBudget';
 import { useTheme } from '@/theme/ThemeProvider';
 import { useTripStore } from '@/store/tripStore';
 
@@ -69,8 +68,7 @@ export default function TripsScreen() {
 
   const sitesCount = tripSitesCount(trip);
   const unescoCount = tripUnescoCount(trip);
-  const perTraveler = tripPerTraveler(trip);
-  const prepaid = tripPrepaid(trip);
+  const budget = computeTripBudgetFromTrip(trip);
 
   const openAddDaySheet = () => {
     setDaySheet({ mode: 'add' });
@@ -200,18 +198,15 @@ export default function TripsScreen() {
           />
           <TripStatCard
             label="Est. Budget"
-            value={formatINR(trip.totalBudget)}
-            detail={`${formatINR(perTraveler)} / traveler`}
+            value={formatINR(budget.total)}
+            detail={`${formatINR(budget.perTraveler)} / traveler`}
             icon="account-balance-wallet"
             tone="gold"
           />
         </View>
 
         <TripBudgetCard
-          total={trip.totalBudget}
-          prepaid={prepaid}
-          perTraveler={perTraveler}
-          categories={trip.categories}
+          budget={budget}
           onPress={() => setBudgetOpen(true)}
         />
 

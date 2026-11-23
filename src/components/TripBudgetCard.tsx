@@ -2,21 +2,25 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { TripBudgetCategory } from '@/data/trips';
+import { formatINR } from '@/data/trips';
+import { TripBudget } from '@/lib/tripBudget';
 import { useTheme } from '@/theme/ThemeProvider';
 
 type Props = {
-  total: number;
-  prepaid: number;
-  perTraveler: number;
-  categories: TripBudgetCategory[];
+  budget: TripBudget;
   onPress?: () => void;
 };
 
-function accentFor(
-  theme: ReturnType<typeof useTheme>,
-  tone: TripBudgetCategory['color'],
-): string {
+const CATEGORY_META = [
+  { id: 'tickets', label: 'Tickets', tone: 'primary' },
+  { id: 'travel', label: 'Travel', tone: 'gold' },
+  { id: 'guides', label: 'Guides', tone: 'emerald' },
+  { id: 'food', label: 'Food', tone: 'secondary' },
+] as const;
+
+type Tone = (typeof CATEGORY_META)[number]['tone'];
+
+function accentFor(theme: ReturnType<typeof useTheme>, tone: Tone): string {
   switch (tone) {
     case 'gold':
       return theme.colors.gold;
@@ -29,36 +33,17 @@ function accentFor(
   }
 }
 
-function inr(value: number): string {
-  const digits = String(Math.max(0, Math.round(value)));
-  if (digits.length <= 3) {
-    return `₹${digits}`;
-  }
-  const lastThree = digits.slice(-3);
-  let rest = digits.slice(0, -3);
-  const groups: string[] = [];
-  while (rest.length > 2) {
-    groups.unshift(rest.slice(-2));
-    rest = rest.slice(0, -2);
-  }
-  if (rest.length > 0) {
-    groups.unshift(rest);
-  }
-  return `₹${groups.join(',')},${lastThree}`;
-}
-
-export function TripBudgetCard({
-  total,
-  prepaid,
-  perTraveler,
-  categories,
-  onPress,
-}: Props) {
+export function TripBudgetCard({ budget, onPress }: Props) {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
 
-  const totalWeight = categories.reduce((sum, c) => sum + c.amount, 0) || 1;
-  const progress = total > 0 ? Math.min(1, prepaid / total) : 0;
+  const progress = budget.total > 0 ? Math.min(1, budget.prepaid / budget.total) : 0;
+  const amounts = {
+    tickets: budget.tickets,
+    travel: budget.travel,
+    guides: budget.guides,
+    food: budget.food,
+  } as const;
 
   return (
     <Pressable
@@ -83,25 +68,15 @@ export function TripBudgetCard({
               { color: theme.colors.secondary, marginTop: 2 },
             ]}
           >
-            {inr(total)}
+            {formatINR(budget.total)}
           </Text>
         </View>
         <View style={styles.prepaidWrap}>
-          <Text
-            style={[
-              theme.typography.bodySmStrong,
-              { color: theme.colors.primary },
-            ]}
-          >
-            {inr(prepaid)}
+          <Text style={[theme.typography.bodySmStrong, { color: theme.colors.primary }]}>
+            {formatINR(budget.prepaid)}
           </Text>
-          <Text
-            style={[
-              theme.typography.labelMd,
-              { color: theme.colors.onSurfaceVariant },
-            ]}
-          >
-            of {inr(total)} pre-paid
+          <Text style={[theme.typography.labelMd, { color: theme.colors.onSurfaceVariant }]}>
+            of {formatINR(budget.total)} pre-paid
           </Text>
         </View>
         <MaterialIcons
@@ -113,54 +88,37 @@ export function TripBudgetCard({
       </View>
 
       <View style={styles.bar}>
-        {categories.map((category) => (
-          <View
-            key={category.id}
-            style={[
-              styles.segment,
-              {
-                flex: category.amount / totalWeight,
-                backgroundColor: accentFor(theme, category.color),
-              },
-            ]}
-          />
-        ))}
+        {CATEGORY_META.map((category) => {
+          const amount = amounts[category.id];
+          const flex = budget.total > 0 ? amount / budget.total : 0;
+          if (flex <= 0) return null;
+          return (
+            <View
+              key={category.id}
+              style={[
+                styles.segment,
+                { flex, backgroundColor: accentFor(theme, category.tone) },
+              ]}
+            />
+          );
+        })}
+        {budget.total === 0 ? <View style={[styles.segment, { flex: 1, backgroundColor: theme.colors.surfaceContainerHigh }]} /> : null}
       </View>
 
       <View style={styles.progressTrack}>
-        <View
-          style={[
-            styles.progressFill,
-            { width: `${Math.round(progress * 100)}%` },
-          ]}
-        />
+        <View style={[styles.progressFill, { width: `${Math.round(progress * 100)}%` }]} />
       </View>
 
       <View style={styles.legend}>
-        {categories.map((category) => (
+        {CATEGORY_META.map((category) => (
           <View key={category.id} style={styles.legendItem}>
-            <View
-              style={[
-                styles.legendDot,
-                { backgroundColor: accentFor(theme, category.color) },
-              ]}
-            />
+            <View style={[styles.legendDot, { backgroundColor: accentFor(theme, category.tone) }]} />
             <View>
-              <Text
-                style={[
-                  theme.typography.labelMd,
-                  { color: theme.colors.onSurfaceVariant },
-                ]}
-              >
+              <Text style={[theme.typography.labelMd, { color: theme.colors.onSurfaceVariant }]}>
                 {category.label}
               </Text>
-              <Text
-                style={[
-                  theme.typography.bodySmStrong,
-                  { color: theme.colors.secondary },
-                ]}
-              >
-                {inr(category.amount)}
+              <Text style={[theme.typography.bodySmStrong, { color: theme.colors.secondary }]}>
+                {formatINR(amounts[category.id])}
               </Text>
             </View>
           </View>
@@ -168,18 +126,9 @@ export function TripBudgetCard({
       </View>
 
       <View style={styles.footerRow}>
-        <MaterialIcons
-          name="person"
-          size={12}
-          color={theme.colors.onSurfaceVariant}
-        />
-        <Text
-          style={[
-            theme.typography.labelMd,
-            { color: theme.colors.onSurfaceVariant },
-          ]}
-        >
-          {inr(perTraveler)} / traveler
+        <MaterialIcons name="person" size={12} color={theme.colors.onSurfaceVariant} />
+        <Text style={[theme.typography.labelMd, { color: theme.colors.onSurfaceVariant }]}>
+          {formatINR(budget.perTraveler)} / traveler
         </Text>
       </View>
     </Pressable>
@@ -196,14 +145,8 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
       borderColor: `${theme.colors.outlineVariant}66`,
       ...theme.shadows.warmSoft,
     },
-    headerRow: {
-      flexDirection: 'row',
-      alignItems: 'flex-start',
-      justifyContent: 'space-between',
-    },
-    prepaidWrap: {
-      alignItems: 'flex-end',
-    },
+    headerRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+    prepaidWrap: { alignItems: 'flex-end' },
     bar: {
       flexDirection: 'row',
       height: 12,
@@ -212,9 +155,7 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
       marginTop: theme.spacing.md,
       backgroundColor: theme.colors.surfaceContainerHigh,
     },
-    segment: {
-      height: '100%',
-    },
+    segment: { height: '100%' },
     progressTrack: {
       height: 4,
       borderRadius: theme.radii.full,
@@ -222,28 +163,10 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
       overflow: 'hidden',
       marginTop: theme.spacing.xs,
     },
-    progressFill: {
-      height: '100%',
-      borderRadius: theme.radii.full,
-      backgroundColor: theme.colors.primary,
-    },
-    legend: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      marginTop: theme.spacing.sm,
-    },
-    legendItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      width: '50%',
-      gap: theme.spacing.sm,
-      marginTop: theme.spacing.sm,
-    },
-    legendDot: {
-      width: 10,
-      height: 10,
-      borderRadius: 5,
-    },
+    progressFill: { height: '100%', borderRadius: theme.radii.full, backgroundColor: theme.colors.primary },
+    legend: { flexDirection: 'row', flexWrap: 'wrap', marginTop: theme.spacing.sm },
+    legendItem: { flexDirection: 'row', alignItems: 'center', width: '50%', gap: theme.spacing.sm, marginTop: theme.spacing.sm },
+    legendDot: { width: 10, height: 10, borderRadius: 5 },
     footerRow: {
       flexDirection: 'row',
       alignItems: 'center',

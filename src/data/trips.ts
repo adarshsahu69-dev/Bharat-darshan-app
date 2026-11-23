@@ -58,8 +58,8 @@ export type Trip = {
   startDate: string;
   endDate: string;
   travelerCount: number;
-  /** Headline budget in rupees. */
-  totalBudget: number;
+  /** Overall pre-paid amount in rupees. */
+  prepaid: number;
   categories: TripBudgetCategory[];
   days: TripDay[];
 };
@@ -166,14 +166,7 @@ export function tripUnescoCount(trip: Trip): number {
   return count;
 }
 
-export function tripPrepaid(trip: Trip): number {
-  return trip.categories.reduce((sum, category) => sum + category.prepaid, 0);
-}
 
-export function tripPerTraveler(trip: Trip): number {
-  const travelers = Math.max(1, trip.travelerCount);
-  return Math.round(trip.totalBudget / travelers);
-}
 
 /** "3 Days · Oct 24 - 26, 2025" style label from ISO dates. */
 export function formatTripDates(startDate: string, endDate: string): string {
@@ -292,23 +285,12 @@ export function createSeedTrip(): Trip {
     stops: seedStops(blueprint),
   }));
 
-  const ticketTotal = days.reduce(
-    (sum, day) =>
-      sum + day.stops.reduce((daySum, stop) => daySum + stop.ticketPrice, 0),
-    0,
-  );
-
   const categories: TripBudgetCategory[] = [
-    { id: 'tickets', label: 'Tickets', amount: ticketTotal, prepaid: 0, color: 'primary' },
-    { id: 'travel', label: 'Travel', amount: 4200, prepaid: 4000, color: 'gold' },
-    { id: 'guides', label: 'Guides', amount: 3500, prepaid: 2000, color: 'emerald' },
+    { id: 'tickets', label: 'Tickets', amount: 0, prepaid: 0, color: 'primary' },
+    { id: 'travel', label: 'Travel', amount: 4200, prepaid: 0, color: 'gold' },
+    { id: 'guides', label: 'Guides', amount: 3500, prepaid: 0, color: 'emerald' },
     { id: 'food', label: 'Food', amount: 5000, prepaid: 0, color: 'secondary' },
   ];
-
-  const totalBudget = categories.reduce(
-    (sum, category) => sum + category.amount,
-    0,
-  );
 
   return {
     title: 'Royal Heritage of Rajasthan',
@@ -316,7 +298,7 @@ export function createSeedTrip(): Trip {
     startDate: '2025-10-24',
     endDate: '2025-10-26',
     travelerCount: 4,
-    totalBudget,
+    prepaid: 6000,
     categories,
     days,
   };
