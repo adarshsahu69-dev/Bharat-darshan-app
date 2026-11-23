@@ -23,7 +23,7 @@ export const privacySections: PrivacySection[] = [
   {
     title: 'Information Stored on Your Device',
     body:
-      'Saved places, trips, and your profile name are stored only on your device. We do not upload this information to our servers, and it stays on your device unless you remove it or uninstall the app.',
+      'Saved places, trips, your profile name, and your optional profile photo are stored only on your device. We do not upload this information to our servers, and it stays on your device unless you remove it or uninstall the app. Your profile photo is never sent to our servers.',
   },
   {
     title: 'Information We Load from the Internet',

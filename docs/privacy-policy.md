@@ -6,7 +6,7 @@ Bharat Darshan is designed to help you explore India's heritage. We keep this po
 
 ## Information Stored on Your Device
 
-Saved places, trips, and your profile name are stored only on your device. We do not upload this information to our servers, and it stays on your device unless you remove it or uninstall the app.
+Saved places, trips, your profile name, and your optional profile photo are stored only on your device. We do not upload this information to our servers, and it stays on your device unless you remove it or uninstall the app. Your profile photo is never sent to our servers.
 
 ## Information We Load from the Internet
 

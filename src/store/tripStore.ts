@@ -20,6 +20,7 @@ import {
   TripDay,
   TripStop,
 } from '@/data/trips';
+import { useSettingsStore } from '@/store/settingsStore';
 
 const MAX_TICKET_FLOOR = 0;
 
@@ -282,7 +283,11 @@ export const useTripStore = create<TripStore>()(
           return { trip: { ...state.trip, days } };
         }),
 
-      resetTrip: () => set({ trip: createSeedTrip() }),
+      resetTrip: () => {
+        const defaultTravelers = useSettingsStore.getState().defaultTravelers;
+        const trip = createSeedTrip();
+        set({ trip: { ...trip, travelerCount: defaultTravelers } });
+      },
     }),
     {
       name: 'bharat-darshan-trip-v1',

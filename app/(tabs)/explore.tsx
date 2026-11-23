@@ -1,6 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
@@ -24,9 +24,17 @@ export default function ExploreScreen() {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
   const router = useRouter();
+  const params = useLocalSearchParams<{ state?: string | string[] }>();
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<CategoryId | null>(null);
   const [activeState, setActiveState] = useState<string | null>(null);
+
+  useEffect(() => {
+    const stateParam = Array.isArray(params.state) ? params.state[0] : params.state;
+    if (typeof stateParam === 'string' && stateParam.length > 0) {
+      setActiveState(stateParam);
+    }
+  }, [params.state]);
 
   // React Query owns loading, caching and retry. We render loading/error/empty
   // states from its result so no manual fetch logic is needed here.

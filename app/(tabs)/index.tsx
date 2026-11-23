@@ -21,6 +21,7 @@ import { SectionHeader } from '@/components/SectionHeader';
 import { CategoryId, homeCategories } from '@/data/monuments';
 import { filterMonumentList, useMonuments } from '@/data/useMonuments';
 import { useProfileStore } from '@/store/profileStore';
+import { useSettingsStore } from '@/store/settingsStore';
 import { useTheme } from '@/theme/ThemeProvider';
 
 export default function HomeScreen() {
@@ -30,13 +31,21 @@ export default function HomeScreen() {
   const [activeCategory, setActiveCategory] = useState<CategoryId | null>(null);
   const [search, setSearch] = useState('');
 
+  const homeState = useSettingsStore((s) => s.homeState);
+
   // React Query owns loading, caching and retry. We render loading/error/empty
   // states from its result so no manual fetch logic is needed here.
   const { data: monuments, isPending, isError, error, refetch } =
     useMonuments();
 
   const featured = monuments?.[0];
-  const popular = monuments?.slice(0, 4) ?? [];
+  const popular = useMemo(() => {
+    const all = monuments ?? [];
+    if (!homeState) return all.slice(0, 4);
+    const inHome = all.filter((m) => m.state === homeState);
+    const others = all.filter((m) => m.state !== homeState);
+    return [...inHome, ...others].slice(0, 4);
+  }, [monuments, homeState]);
 
   // One filtered list drives both the category chips and the search box.
   const results = useMemo(
