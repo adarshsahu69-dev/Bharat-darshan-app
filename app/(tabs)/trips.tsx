@@ -14,6 +14,7 @@ import { BudgetEditSheet } from '@/components/BudgetEditSheet';
 import { DayChipRow } from '@/components/DayChipRow';
 import { DayNameSheet } from '@/components/DayNameSheet';
 import { PlacePickerSheet } from '@/components/PlacePickerSheet';
+import { ProfileAvatarButton } from '@/components/ProfileAvatarButton';
 import { TripBudgetCard } from '@/components/TripBudgetCard';
 import { TripEditSheet } from '@/components/TripEditSheet';
 import { TripHeaderCard } from '@/components/TripHeaderCard';
@@ -168,6 +169,7 @@ export default function TripsScreen() {
           >
             Bharat Darshan
           </Text>
+          <ProfileAvatarButton size={36} />
         </View>
       </SafeAreaView>
 
@@ -429,6 +431,9 @@ export default function TripsScreen() {
 function makeStyles(theme: ReturnType<typeof useTheme>) {
   return StyleSheet.create({
     header: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
       paddingHorizontal: theme.spacing.page,
       paddingTop: theme.spacing.sm,
       paddingBottom: theme.spacing.sm,

@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CategoryChip } from '@/components/CategoryChip';
 import { EmptyState } from '@/components/EmptyState';
 import { ExploreCard } from '@/components/ExploreCard';
+import { ProfileAvatarButton } from '@/components/ProfileAvatarButton';
 import { SearchBar } from '@/components/SearchBar';
 import { CategoryId, homeCategories } from '@/data/monuments';
 import { filterMonumentList, useMonuments } from '@/data/useMonuments';
@@ -127,7 +128,7 @@ export default function ExploreScreen() {
                 Over 4,000 national monuments &amp; sacred sites
               </Text>
             </View>
-
+            <ProfileAvatarButton size={36} />
           </View>
 
           <View style={styles.searchRow}>

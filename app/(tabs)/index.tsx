@@ -15,15 +15,12 @@ import { CategoryChip } from '@/components/CategoryChip';
 import { EmptyState } from '@/components/EmptyState';
 import { FeaturedCard } from '@/components/FeaturedCard';
 import { PopularCard } from '@/components/PopularCard';
-import { SafeImage } from '@/components/SafeImage';
+import { ProfileAvatarButton } from '@/components/ProfileAvatarButton';
 import { SearchBar } from '@/components/SearchBar';
 import { SectionHeader } from '@/components/SectionHeader';
-import {
-  CategoryId,
-  homeCategories,
-  travelerAvatar,
-} from '@/data/monuments';
+import { CategoryId, homeCategories } from '@/data/monuments';
 import { filterMonumentList, useMonuments } from '@/data/useMonuments';
+import { useProfileStore } from '@/store/profileStore';
 import { useTheme } from '@/theme/ThemeProvider';
 
 export default function HomeScreen() {
@@ -271,6 +268,7 @@ function HomeHeader({
 }) {
   const theme = useTheme();
   const styles = useMemo(() => makeStyles(theme), [theme]);
+  const displayName = useProfileStore((state) => state.displayName);
 
   return (
     <SafeAreaView
@@ -287,7 +285,7 @@ function HomeHeader({
         </View>
 
         <View style={styles.greetingRow}>
-          <Avatar />
+          <ProfileAvatarButton size={44} />
           <View style={{ flex: 1 }}>
             <Text
               style={[
@@ -298,7 +296,7 @@ function HomeHeader({
                 },
               ]}
             >
-              Namaste, Traveler
+              Namaste, {displayName}
             </Text>
             <Text
               style={[
@@ -327,38 +325,7 @@ function HomeHeader({
   );
 }
 
-function Avatar() {
-  const theme = useTheme();
-  const styles = useMemo(() => makeStyles(theme), [theme]);
-  const [failed, setFailed] = useState(false);
 
-  return (
-    <View style={styles.avatar}>
-      {failed ? (
-        <View style={styles.avatarFallback}>
-          <Text
-            style={[
-              theme.typography.titleMd,
-              { color: theme.colors.onPrimary },
-            ]}
-          >
-            A
-          </Text>
-        </View>
-      ) : (
-        <SafeImage
-          uri={travelerAvatar}
-          containerStyle={styles.avatarImage}
-          resizeMode="cover"
-          accessibilityLabel="Traveler avatar"
-          iconName="person"
-          iconSize={20}
-        />
-      )}
-      <View style={styles.onlineDot} />
-    </View>
-  );
-}
 
 function NotificationButton() {
   const theme = useTheme();
@@ -450,37 +417,6 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
       alignItems: 'center',
       gap: theme.spacing.md,
       marginBottom: theme.spacing.md,
-    },
-    avatar: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      borderWidth: 2,
-      borderColor: `${theme.colors.primary}4D`,
-      padding: 2,
-    },
-    avatarImage: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-    },
-    avatarFallback: {
-      flex: 1,
-      borderRadius: 20,
-      backgroundColor: theme.colors.primary,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    onlineDot: {
-      position: 'absolute',
-      bottom: 0,
-      right: 0,
-      width: 12,
-      height: 12,
-      borderRadius: 6,
-      backgroundColor: theme.colors.gold,
-      borderWidth: 2,
-      borderColor: theme.colors.surface,
     },
     notificationButton: {
       width: 40,

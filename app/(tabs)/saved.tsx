@@ -13,6 +13,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AddToTripSheet } from '@/components/AddToTripSheet';
 import { ExploreCard } from '@/components/ExploreCard';
+import { ProfileAvatarButton } from '@/components/ProfileAvatarButton';
 import { CategoryId, Monument } from '@/data/monuments';
 import { useMonuments } from '@/data/useMonuments';
 import { useBookmarkStore } from '@/store/bookmarkStore';
@@ -119,19 +120,27 @@ export default function SavedScreen() {
         style={{ backgroundColor: theme.colors.surface }}
       >
         <View style={styles.header}>
-          <Text
-            style={[theme.typography.headlineSm, { color: theme.colors.secondary }]}
-          >
-            Saved Places
-          </Text>
-          <Text
-            style={[
-              theme.typography.bodySm,
-              { color: theme.colors.onSurfaceVariant, marginTop: 2 },
-            ]}
-          >
-            {countLabel}
-          </Text>
+          <View style={styles.titleRow}>
+            <View style={{ flex: 1 }}>
+              <Text
+                style={[
+                  theme.typography.headlineSm,
+                  { color: theme.colors.secondary },
+                ]}
+              >
+                Saved Places
+              </Text>
+              <Text
+                style={[
+                  theme.typography.bodySm,
+                  { color: theme.colors.onSurfaceVariant, marginTop: 2 },
+                ]}
+              >
+                {countLabel}
+              </Text>
+            </View>
+            <ProfileAvatarButton size={36} />
+          </View>
 
           <ScrollView
             horizontal
@@ -283,6 +292,12 @@ function makeStyles(theme: ReturnType<typeof useTheme>) {
       paddingBottom: theme.spacing.md,
       borderBottomWidth: 1,
       borderBottomColor: `${theme.colors.outlineVariant}4D`,
+    },
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: theme.spacing.md,
     },
     chipRow: {
       gap: theme.spacing.sm,
