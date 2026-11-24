@@ -168,7 +168,26 @@ export function tripUnescoCount(trip: Trip): number {
 
 
 
-/** "3 Days · Oct 24 - 26, 2025" style label from ISO dates. */
+const SHORT_MONTHS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+] as const;
+
+function shortMonth(date: Date): string {
+  return SHORT_MONTHS[date.getMonth()];
+}
+
+/** "3 Days · 24 – 26 Oct 2026" style label from ISO dates. */
 export function formatTripDates(startDate: string, endDate: string): string {
   const start = new Date(`${startDate}T00:00:00`);
   const end = new Date(`${endDate}T00:00:00`);
@@ -179,26 +198,29 @@ export function formatTripDates(startDate: string, endDate: string): string {
     1,
     Math.round((end.getTime() - start.getTime()) / 86_400_000) + 1,
   );
-  const month = (d: Date) =>
-    d.toLocaleDateString('en-US', { month: 'short' });
-  const sameMonth = start.getMonth() === end.getMonth();
-  const startLabel = `${month(start)} ${start.getDate()}`;
-  const endLabel = sameMonth
-    ? `${end.getDate()}`
-    : `${month(end)} ${end.getDate()}`;
-  return `${dayCount} ${dayCount === 1 ? 'Day' : 'Days'} · ${startLabel} - ${endLabel}, ${end.getFullYear()}`;
+  const dayLabel = `${dayCount} ${dayCount === 1 ? 'Day' : 'Days'}`;
+
+  const startDayMonth = `${start.getDate()} ${shortMonth(start)}`;
+  const endDayMonth = `${end.getDate()} ${shortMonth(end)}`;
+
+  if (start.getFullYear() !== end.getFullYear()) {
+    return `${dayLabel} · ${startDayMonth} ${start.getFullYear()} – ${endDayMonth} ${end.getFullYear()}`;
+  }
+
+  if (start.getMonth() === end.getMonth()) {
+    return `${dayLabel} · ${start.getDate()} – ${end.getDate()} ${shortMonth(end)} ${end.getFullYear()}`;
+  }
+
+  return `${dayLabel} · ${startDayMonth} – ${endDayMonth} ${end.getFullYear()}`;
 }
 
-/** Human-friendly label for an ISO date on a day chip. */
+/** Human-friendly label for an ISO date on a day chip, e.g. "24 Oct". */
 export function formatDayDate(iso: string): string {
   const date = new Date(`${iso}T00:00:00`);
   if (Number.isNaN(date.getTime())) {
     return iso;
   }
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-  });
+  return `${date.getDate()} ${shortMonth(date)}`;
 }
 
 /* --------------------------------------------------------------- stop build */
@@ -246,19 +268,19 @@ const DAY_BLUEPRINTS: DayBlueprint[] = [
   {
     id: 'day-1',
     title: 'Amber & Forts',
-    date: '2025-10-24',
+    date: '2026-12-12',
     monumentIds: ['amber-fort', 'jaigarh-fort', 'nahargarh-fort', 'jal-mahal'],
   },
   {
     id: 'day-2',
     title: 'Old Pink City',
-    date: '2025-10-25',
+    date: '2026-12-13',
     monumentIds: ['hawa-mahal', 'city-palace-jaipur', 'albert-hall'],
   },
   {
     id: 'day-3',
     title: 'Sunset & Farewell',
-    date: '2025-10-26',
+    date: '2026-12-14',
     monumentIds: ['nahargarh-fort', 'jal-mahal'],
   },
 ];
@@ -295,8 +317,8 @@ export function createSeedTrip(): Trip {
   return {
     title: 'Royal Heritage of Rajasthan',
     destination: 'Jaipur & Amer',
-    startDate: '2025-10-24',
-    endDate: '2025-10-26',
+    startDate: '2026-12-12',
+    endDate: '2026-12-14',
     travelerCount: 4,
     prepaid: 6000,
     categories,
@@ -314,7 +336,7 @@ export const tripHeader = {
   chip: 'Rajasthan Circuit',
   title: 'Royal Heritage of Rajasthan',
   subtitle: 'Jaipur & Amer',
-  dates: '3 Days · Oct 24 - 26, 2025',
+  dates: '3 Days · 12 – 14 Dec 2026',
   confirmed: 'Confirmed Trip',
   travelerCount: 4,
 };
