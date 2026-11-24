@@ -67,7 +67,7 @@ export function PopularCard({ monument, onPress, fullWidth }: Props) {
         <View>
           <Text
             style={[
-              theme.typography.titleLg,
+              theme.typography.headlineSm,
               { color: theme.colors.secondary },
             ]}
           >

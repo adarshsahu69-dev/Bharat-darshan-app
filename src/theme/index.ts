@@ -57,7 +57,7 @@ const typographyBase = {
     fontWeight: '600',
   },
   titleLg: {
-    fontFamily: 'PlayfairDisplay_600SemiBold',
+    fontFamily: 'Inter_600SemiBold',
     fontSize: 18,
     lineHeight: 24,
     fontWeight: '600',
